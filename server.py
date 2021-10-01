@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.0.0'  # initial release (2021/08/22)
+VERSION = '1.0.1'  # small fix (2021/10/01)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
@@ -207,7 +207,7 @@ def list_directory(directory):
 
                     show_path = ""
                     if len(folder_path.split('/')) > 1:
-                        show_path = (' \\ '.join(folder_path.split('/')[1:])) + " \\ "
+                        show_path = (' / '.join(folder_path.split('/')[1:])) + " / "
                     header_language = [f'{username}\'s files', 'files', 'folder(s)', 'file(s)', 'version']
                     if LANGUAGE == 'de':
                         header_language = [f'Dateien von {username}', 'Dateien', 'Ordner', 'Dateien', 'Version']
@@ -219,7 +219,7 @@ def list_directory(directory):
                         <body style="background-color:#59595F">
                             <h1 style="font-family:sans-serif; font-size:24px; text-align:center; font-weight:bold; color:black; background-color:#79E579; 
                             border-radius:10px; margin:16px; margin-bottom:32px; padding:8px; box-shadow:2px 2px 4px #262626">
-                                ~ \\ {header_language[1]} \\ {show_path}...
+                                ~ / {header_language[1]} / {show_path}...
                             </h1>
                             {menubar}<br>
                             {folder_list}<br><br>
