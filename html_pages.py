@@ -24,7 +24,7 @@ class HtmlPages:
                 <title>RaspiNAS Anmeldung</title>
             </head>
             <body style="background-color:#59595F">
-                <h1 style="font-family:sans-serif; font-size:24px; text-align:center; font-weight:bold; color:black; background-color:#79E579; 
+                <h1 style="font-family:sans-serif; font-size:24px; text-align:center; font-weight:bold; color:black; background-color:#88DD3A; 
                 border-radius:10px; margin:16px; margin-bottom:32px; padding:8px; box-shadow:2px 2px 4px #262626">
                     - {owner} RaspiNAS -
                 </h1>
@@ -43,7 +43,7 @@ class HtmlPages:
                         Kennnummer
                     </p>
                     <input value="Anmelden" type="submit" style="position:relative; left:150px; font-family:sans-serif; font-size:14px; text-align:center; 
-                    width:150px; color:black; background-color:#79E579; border-radius:4px; border-style:hidden; margin-top:24px; padding:8px; box-shadow:2px 2px 4px #262626" />
+                    width:150px; color:black; background-color:#88DD3A; border-radius:4px; border-style:hidden; margin-top:24px; padding:8px; box-shadow:2px 2px 4px #262626" />
                 </form>
             </body>
             ''')
@@ -60,7 +60,7 @@ class HtmlPages:
                 </p>
                 <form action="/home" style="margin:auto; width:250px; height:100px; background-color:#59595F">
                     <input value="Wiederholen?" type="submit" style="position:relative; left:50px; font-family:sans-serif; font-size:14px; text-align:center; 
-                    width:150px; color:black; background-color:#79E579; border-radius:4px; border-style:hidden; margin-top:32px; padding:8px; box-shadow:2px 2px 4px #262626" />
+                    width:150px; color:black; background-color:#88DD3A; border-radius:4px; border-style:hidden; margin-top:32px; padding:8px; box-shadow:2px 2px 4px #262626" />
                 </form>
             </body>
             ''')
@@ -111,7 +111,7 @@ class HtmlPages:
                 <title>RaspiNAS Login</title>
             </head>
             <body style="background-color:#59595F">
-                <h1 style="font-family:sans-serif; font-size:24px; text-align:center; font-weight:bold; color:black; background-color:#79E579; 
+                <h1 style="font-family:sans-serif; font-size:24px; text-align:center; font-weight:bold; color:black; background-color:#88DD3A; 
                 border-radius:10px; margin:16px; margin-bottom:32px; padding:8px; box-shadow:2px 2px 4px #262626">
                     - {owner} RaspiNAS -
                 </h1>
@@ -130,7 +130,7 @@ class HtmlPages:
                         Identification number (pin)
                     </p>
                     <input value="Login" type="submit" style="position:relative; left:150px; font-family:sans-serif; font-size:14px; text-align:center; 
-                    width:150px; color:black; background-color:#79E579; border-radius:4px; border-style:hidden; margin-top:24px; padding:8px; box-shadow:2px 2px 4px #262626" />
+                    width:150px; color:black; background-color:#88DD3A; border-radius:4px; border-style:hidden; margin-top:24px; padding:8px; box-shadow:2px 2px 4px #262626" />
                 </form>
             </body>
             ''')
@@ -147,7 +147,7 @@ class HtmlPages:
                 </p>
                 <form action="/home" style="margin:auto; width:250px; height:100px; background-color:#59595F">
                     <input value="Retry?" type="submit" style="position:relative; left:50px; font-family:sans-serif; font-size:14px; text-align:center; 
-                    width:150px; color:black; background-color:#79E579; border-radius:4px; border-style:hidden; margin-top:32px; padding:8px; box-shadow:2px 2px 4px #262626" />
+                    width:150px; color:black; background-color:#88DD3A; border-radius:4px; border-style:hidden; margin-top:32px; padding:8px; box-shadow:2px 2px 4px #262626" />
                 </form>
             </body>
             ''')
