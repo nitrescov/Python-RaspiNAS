@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.0.1'  # small fix (2021/10/01)
+VERSION = '1.0.2'  # small improvement (2021/10/10)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
@@ -140,8 +140,12 @@ def list_directory(directory):
                         file_type = 'file'
                         if file_extension.lower() in ["png", "bmp", "jpg", "jpeg", "gif", "tga", "dds", "heic", "webp"]:
                             file_type = 'image'
-                        elif file_extension.lower() in ["zip", "tar", "7z"]:
+                        elif file_extension.lower() in ["zip", "tar", "7z", "gz", "deb", "rpm"]:
                             file_type = 'zip_folder'
+                        elif file_extension.lower() in ["mkv", "webm", "flv", "avi", "mov", "wmv", "mp4", "m4v"]:
+                            file_type = 'video'
+                        elif file_extension.lower() in ["pdf"]:
+                            file_type = 'pdf'
                         else:
                             pass
                         file_list = file_list + \
