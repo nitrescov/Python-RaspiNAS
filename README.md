@@ -19,7 +19,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 ## Einrichtung
 
 1. Vorbereitung:
-   * Die empfohlene Python Version ist 3.9.6. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
+   * Die empfohlene Python Version ist 3.10.1. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
    * Mehr Informationen befinden sich in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Momentan werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. Daher **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
 
@@ -28,7 +28,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
    * Als Beispiel wird der Nutzer `guest` mit dem Passwort `123` mitgeliefert.
    * Zum Anlegen von Nutzern kann die Datei `add_users.py` ohne Parameter mit Python ausgeführt werden. Diese sollte selbsterklärend sein, bei Bedarf befinden sich weitere Informationen in der Datei.
    * Um einen Nutzer vollständig zu Löschen, müssen die Ordner mit dessen Namen aus `users` und `temp` gelöscht werden. Danach muss die Zeile mit seinem Namen aus `usernames.dat` und sein Hashwert aus `userdata.dat` (**gleiche Zeilennummer/Position**) entfernt werden.
-   * **Achtung:** beim Löschen muss unbedingt beachtet werden, dass man die richtigen Zeilen entfernt und beide Dateien am Ende die gleiche Zeilenanzahl besitzen (mit einer Leerzeile am Ende). Bei wenigen Nutzern empfiehlt es sich, die Dateien zu löschen und mittels `add_users.py` neu zu generieren.
+   * **Achtung:** beim Löschen muss unbedingt beachtet werden, dass man die richtigen Zeilen entfernt und beide Dateien am Ende die gleiche Zeilenanzahl besitzen (mit einem Zeilenumbruch am Ende). Bei wenigen Nutzern empfiehlt es sich, die Dateien zu löschen und mittels `add_users.py` neu zu generieren.
 
 
 3. Einrichtung der `server.py` Datei:
@@ -39,11 +39,14 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 4. Starten des Servers:
    * Da sich das Projekt zur Nutzung auf dem [Raspberry Pi](https://www.raspberrypi.org/) eignet, zunächst ein Hinweis hierfür: Damit der Server auch nach dem schließen einer SSH-Verbindung weiterläuft, eignet sich [screen](https://www.gnu.org/software/screen/) als Tool.
    * Befindet man sich mit dem Terminal im Hauptverzeichnis (normal `Python-RaspiNAS/`), kann er ganz einfach mit dem Befehl `python3 server.py` gestartet werden.
-   * Ein mögliches Problem, dass Schreibrechte beim Ordnermanagement durch Python fehlen, kann - wenn man dem Code vertraut - durch die Ausführung mit `sudo` behoben werden.
+   * Ein mögliches Problem, dass Schreibrechte beim Ordnermanagement durch Python fehlen, kann - wenn man dem Code vertraut - durch die Ausführung mit `sudo` behoben werden. Eine alternative und bessere Lösung ist die Nutzung der Rechteverwaltung unter Linux.
 
 
 5. Beenden des Servers:
    * Der wohl einfachste Schritt: (screen -r) und STRG + C
+
+> Hinweis:<br>
+> Das Programm sollte derzeit ausschließlich auf einem nicht öffentlich erreichbaren Heimserver genutzt werden. Auch wenn die Anmeldedaten mittels SHA224 gehasht und über einen mit einem zufälligen SECRET-Token gesicherten Cookie übertragen werden, sind die Dateien beim Up- und Download allerdings **nicht** verschlüsselt oder anderweitig geschützt.
 
 ---
 
@@ -62,7 +65,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 ## Setup
 
 1. Preparation:
-   * The recommended Python version is 3.9.6. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
+   * The recommended Python version is 3.10.1. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
    * More information can be found in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Currently the data will be stored in directories starting from the installation home of the `server.py` file. For that reason, this parent directory **must** be stored on the same hard drive as the one where the data will go.
 
@@ -71,7 +74,7 @@ Currently I'm the only developer behind the project. For that reason, there will
    * As an example the user `guest` with his pin `123` is already created.
    * To create users yourself, start `add_users.py` without parameters using Python. It should be self-explaining but further information can be found directly in the file if needed.
    * To completely delete a user, the directories with his name have to be removed from  `users` and `temp` first. After that, the line containing his name must be deleted from `usernames.dat` and his hash-value from `userdata.dat` (**same line number/position**).
-   * **Warning:** When deleting a user double check to remove the right lines and make sure that both files have the same line count afterwards (with one blank line at the end). If there are only few users, I'd recommend deleting the file and regenerating it with `add_users.py`.
+   * **Warning:** When deleting a user double check to remove the right lines and make sure that both files have the same line count afterwards (with one linebreak at the end). If there are only few users, I'd recommend deleting the file and regenerating it with `add_users.py`.
 
 
 3. Setup of `server.py`:
@@ -82,8 +85,11 @@ Currently I'm the only developer behind the project. For that reason, there will
 4. Starting the server:
    * Because the project is suitable for use on a [Raspberry Pi](https://www.raspberrypi.org/), first of all a hint for that: To make the server keep running after closing a SSH connection, you can use the tool [screen](https://www.gnu.org/software/screen/).
    * If you are using your Terminal in the installation home (default `Python-RaspiNAS/`), just type the command `python3 server.py` to start the application.
-   * A potential problem caused by missing writing permissions when Python tries to manage directories can be solved using `sudo` - if you trust the code.
+   * A potential problem caused by missing writing permissions when Python tries to manage directories can be solved using `sudo` - if you trust the code. An alternative and better solution is to use the Linux rights management.
 
 
 5. Shutdown the server:
    * Probably the easiest part: (screen -r) and CTRL + C
+
+> Note:<br>
+> The program should currently only be used on a home server that is not publicly accessible. Even though the login data is hashed using SHA224 and transferred via a cookie secured with a random SECRET token, the files are **not** encrypted or otherwise protected during upload and download.

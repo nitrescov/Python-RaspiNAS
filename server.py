@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-# Currently recommended Python version: 3.9.6
+# Currently recommended Python version: 3.10.1
 
 import os
 import paste
@@ -25,7 +25,7 @@ import threading
 import receiver
 from html_pages import HtmlPages
 
-# import cherrypy  # (upload limit 100MB)
+# import cherrypy  # (100MB upload limit)
 # import subprocess  # alternative to shutil
 
 # ----- Server configuration and personalization: ---------------------------------------
@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.0.3'  # small improvement (2021/10/10)
+VERSION = '1.1.0'  # feature and design updates (2021/12/29)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
@@ -146,6 +146,8 @@ def list_directory(directory):
                             file_type = 'video'
                         elif file_extension.lower() in ["pdf"]:
                             file_type = 'pdf'
+                        elif file_extension.lower() in ["aac", "mp3", "m4a", "acc", "wav", "wma", "ogg", "flac", "aiff", "alac", "dsd", "mqa", "opus"]:
+                            file_type = 'music'
                         else:
                             pass
                         file_list = file_list + \
@@ -161,11 +163,11 @@ def list_directory(directory):
                                       f'<img src="/icons/trash_16x16.png"/>'
                                       f'</div></a></div>')
                     menu_buttons = ['Back to homepage', 'One page back', 'Download folder (zip)',
-                                    '     Create directory', 'Unpack zip-file here', 'Upload file']
+                                    '       Create directory', '   Unpack zip-file here', 'Upload file']
                     menu_placeholders = ['folder name', 'file.zip']
                     if LANGUAGE == 'de':
                         menu_buttons = ['zur Hauptseite', 'eine Seite zurück', 'Ordner herunterladen (zip)',
-                                        '     Ordner erstellen', '     zip-Datei hier entpacken', '    Datei hochladen']
+                                        '       Ordner erstellen', '      zip-Datei hier entpacken', '     Datei hochladen']
                         menu_placeholders = ['Ordnername', 'Dateiname.zip']
                     menubar = (f'<div style="text-align:center; font-family:sans-serif; font-size:16px">'
                                f'<a href="/files/{username}" style="text-decoration:none">'
