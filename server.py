@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.1.0'  # feature and design updates (2021/12/29)
+VERSION = '1.1.1'  # button style improvements (2022/02/13)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
@@ -121,17 +121,17 @@ def list_directory(directory):
                         delete_dir_confirm = 'Soll der Ordner wirklich endgültig gelöscht werden?'
                     for folder in folders:
                         folder_list = folder_list + \
-                                      (f'<div style="text-align:center; background-color:#59595F; font-size:16px; font-family:sans-serif">'
-                                       f'<a href="/files/{folder_path}/{folder}" style="text-decoration:none">'
-                                       f'<div style="width:500px; display:inline-block; text-align:left; color:white; border-bottom-style:solid; '
-                                       f'border-width:1px; border-color:#787878; padding:8px; vertical-align:middle">'
-                                       f'<img src="/icons/folder_32x32.png" style="vertical-align:middle"/>'
-                                       f'<span style="vertical-align:middle; margin-left:16px">{folder}'
-                                       f'</span></div></a>'
-                                       f'<a href="/deletedir/{folder_path}/{folder}" onclick="return confirm(\'{delete_dir_confirm}\');" style="text-decoration:none">'
-                                       f'<div style="width:20px; padding:8px; margin-left:8px; display:inline-block; vertical-align:middle">'
-                                       f'<img src="/icons/trash_16x16.png"/>'
-                                       f'</div></a></div>')
+                                (f'<div style="text-align:center; background-color:#59595F; font-size:16px; font-family:sans-serif">'
+                                 f'<a href="/files/{folder_path}/{folder}" style="text-decoration:none">'
+                                 f'<div style="width:500px; display:inline-block; text-align:left; color:white; border-bottom-style:solid; '
+                                 f'border-width:1px; border-color:#787878; padding:8px; vertical-align:middle">'
+                                 f'<img src="/icons/folder_32x32.png" style="vertical-align:middle"/>'
+                                 f'<span style="vertical-align:middle; margin-left:16px">{folder}'
+                                 f'</span></div></a>'
+                                 f'<a href="/deletedir/{folder_path}/{folder}" onclick="return confirm(\'{delete_dir_confirm}\');" style="text-decoration:none">'
+                                 f'<div style="width:20px; padding:8px; margin-left:8px; display:inline-block; vertical-align:middle">'
+                                 f'<img src="/icons/trash_16x16.png"/>'
+                                 f'</div></a></div>')
                     delete_file_confirm = 'The file will be deleted permanently. Continue?'
                     if LANGUAGE == 'de':
                         delete_file_confirm = 'Soll die Datei wirklich endgültig gelöscht werden?'
@@ -151,62 +151,62 @@ def list_directory(directory):
                         else:
                             pass
                         file_list = file_list + \
-                                     (f'<div style="text-align:center; background-color:#59595F; font-size:16px; font-family:sans-serif">'
-                                      f'<a href="/download/{folder_path}/{file}" style="text-decoration:none">'
-                                      f'<div style="width:500px; display:inline-block; text-align:left; color:white; border-bottom-style:solid; '
-                                      f'border-width:1px; border-color:#787878; padding:8px; vertical-align:middle">'
-                                      f'<img src="/icons/{file_type}_32x32.png" style="vertical-align:middle"/>'
-                                      f'<span style="vertical-align:middle; margin-left:16px">{file}'
-                                      f'</span></div></a>'
-                                      f'<a href="/deletefile/{folder_path}/{file}" onclick="return confirm(\'{delete_file_confirm}\');" style="text-decoration:none">'
-                                      f'<div style="width:20px; padding:8px; margin-left:8px; display:inline-block; vertical-align:middle">'
-                                      f'<img src="/icons/trash_16x16.png"/>'
-                                      f'</div></a></div>')
+                                (f'<div style="text-align:center; background-color:#59595F; font-size:16px; font-family:sans-serif">'
+                                 f'<a href="/download/{folder_path}/{file}" style="text-decoration:none">'
+                                 f'<div style="width:500px; display:inline-block; text-align:left; color:white; border-bottom-style:solid; '
+                                 f'border-width:1px; border-color:#787878; padding:8px; vertical-align:middle">'
+                                 f'<img src="/icons/{file_type}_32x32.png" style="vertical-align:middle"/>'
+                                 f'<span style="vertical-align:middle; margin-left:16px">{file}'
+                                 f'</span></div></a>'
+                                 f'<a href="/deletefile/{folder_path}/{file}" onclick="return confirm(\'{delete_file_confirm}\');" style="text-decoration:none">'
+                                 f'<div style="width:20px; padding:8px; margin-left:8px; display:inline-block; vertical-align:middle">'
+                                 f'<img src="/icons/trash_16x16.png"/>'
+                                 f'</div></a></div>')
                     menu_buttons = ['Back to homepage', 'One page back', 'Download folder (zip)',
-                                    '       Create directory', '   Unpack zip-file here', 'Upload file']
+                                    'Create directory', 'Unpack zip file here', 'Upload file']
                     menu_placeholders = ['folder name', 'file.zip']
                     if LANGUAGE == 'de':
                         menu_buttons = ['zur Hauptseite', 'eine Seite zurück', 'Ordner herunterladen (zip)',
-                                        '       Ordner erstellen', '      zip-Datei hier entpacken', '     Datei hochladen']
+                                        'Ordner erstellen', 'zip-Datei hier entpacken', 'Datei hochladen']
                         menu_placeholders = ['Ordnername', 'Dateiname.zip']
                     menubar = (f'<div style="text-align:center; font-family:sans-serif; font-size:16px">'
                                f'<a href="/files/{username}" style="text-decoration:none">'
                                f'<div style="width:225px; margin:6px; color:black; padding:8px; border-bottom-style:solid; border-right-style:solid; '
-                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; vertical-align:top">'
+                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; text-align:left; vertical-align:top">'
                                f'<img src="/icons/home_16x16.png" style="vertical-align:middle"/>'
                                f'<span style="vertical-align:middle; margin-left:12px">{menu_buttons[0]}'
                                f'</span></div></a>'
                                f'<a href="{prior_path}" style="text-decoration:none">'
                                f'<div style="width:225px; margin:6px; color:black; padding:8px; border-bottom-style:solid; border-right-style:solid; '
-                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; vertical-align:top">'
+                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; text-align:left; vertical-align:top">'
                                f'<img src="/icons/back_16x16.png" style="vertical-align:middle"/>'
                                f'<span style="vertical-align:middle; margin-left:12px">{menu_buttons[1]}'
                                f'</span></div></a>'
                                f'<a href="/zip/{folder_path}" style="text-decoration:none">'
                                f'<div style="width:225px; margin:6px; color:black; padding:8px; border-bottom-style:solid; border-right-style:solid; '
-                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; vertical-align:top">'
+                               f'border-width:1px; border-color:black; display:inline-block; background-color:#787878; text-align:left; vertical-align:top">'
                                f'<img src="/icons/download_16x16.png" style="vertical-align:middle"/>'
                                f'<span style="vertical-align:middle; margin-left:12px">{menu_buttons[2]}'
                                f'</span></div></a></div>'
                                f'<div style="text-align:center; font-family:sans-serif; font-size:16px">'
                                f'<form action="/newfolder/{folder_path}" method="post" style="width:242px; margin:6px; display:inline-block; vertical-align:top">'
-                               f'<input value="{menu_buttons[3]}" type="submit" style="width:242px; background:#787878 url(\'/icons/folder_16x16.png\') no-repeat left; '
-                               f'font-family:sans-serif; font-size:16px; padding:8px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
-                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer" />'
+                               f'<input value="{menu_buttons[3]}" type="submit" style="width:242px; background:#787878 url(\'/icons/folder_16x16.png\') no-repeat scroll 8px; '
+                               f'font-family:sans-serif; font-size:16px; padding:8px; padding-left:36px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
+                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer; text-align:left" />'
                                f'<input name="foldername" type="text" style="border-radius:4px; border-style:hidden; padding:7px; width:242px; background-color:#D8D8D8; '
                                f'font-family:sans-serif; font-size:14px; margin-top:8px" placeholder="{menu_placeholders[0]}" required />'
                                f'</form>'
                                f'<form action="/unpack/{folder_path}" method="post" style="width:242px; margin:6px; display:inline-block; vertical-align:top">'
-                               f'<input value="{menu_buttons[4]}" type="submit" style="width:242px; background:#787878 url(\'/icons/zip_16x16.png\') no-repeat left; '
-                               f'font-family:sans-serif; font-size:16px; padding:8px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
-                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer" />'
+                               f'<input value="{menu_buttons[4]}" type="submit" style="width:242px; background:#787878 url(\'/icons/zip_16x16.png\') no-repeat scroll 8px; '
+                               f'font-family:sans-serif; font-size:16px; padding:8px; padding-left:36px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
+                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer; text-align:left" />'
                                f'<input name="zipfilename" type="text" style="border-radius:4px; border-style:hidden; padding:7px; width:242px; background-color:#D8D8D8; '
                                f'font-family:sans-serif; font-size:14px; margin-top:8px" placeholder="{menu_placeholders[1]}" required />'
                                f'</form>'
                                f'<form action="/upload/{folder_path}" method="post" style="width:242px; margin:6px; display:inline-block; vertical-align:top" enctype="multipart/form-data">'
-                               f'<input value="{menu_buttons[5]}" type="submit" style="width:242px; background:#787878 url(\'/icons/upload_16x16.png\') no-repeat left; '
-                               f'font-family:sans-serif; font-size:16px; padding:8px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
-                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer" />'
+                               f'<input value="{menu_buttons[5]}" type="submit" style="width:242px; background:#787878 url(\'/icons/upload_16x16.png\') no-repeat scroll 8px; '
+                               f'font-family:sans-serif; font-size:16px; padding:8px; padding-left:36px; color:black; border-bottom-style:solid; border-right-style:solid; border-width:1px; '
+                               f'border-top-style:none; border-left-style:none; border-color:black; cursor:pointer; text-align:left" />'
                                f'<input name="filename" type="file" style="border-radius:4px; border-style:hidden; padding:4px; width:242px; background-color:#D8D8D8; '
                                f'font-family:sans-serif; font-size:14px; margin-top:8px" required />'
                                f'</form></div>')
