@@ -42,11 +42,12 @@ def guiserver(host_ip, port, usernames, userdata):
             if (name_position >= 0) and (hash_position >= 0) and (name_position == hash_position):
                 folder = ""
                 for root, dirs, files in os.walk(f"users/{name}"):
-                    folder_path = root[7:]
-                    if folder_path.count("\\") > 1 or folder_path.count("/") > 1:
-                        folder = folder + "\n" + folder_path
-                    else:
+                    folder_path = root[6:]
+                    subdir_count = folder_path.count("/")
+                    if subdir_count <= 1:
                         folder = folder + "\n\n" + folder_path
+                    else:
+                        folder = folder + "\n" + ("  " * (subdir_count - 1)) + folder_path
 
                 folder = folder.encode()
                 while True:
@@ -74,9 +75,9 @@ def guiserver(host_ip, port, usernames, userdata):
                 file_name = os.path.basename(file_name)
                 file_size = int(file_size)
 
-                if os.path.isdir(f'users/{path}') and not os.path.isfile(f'users/{path}/{file_name}'):
+                if os.path.isdir(f"users/{path}") and not os.path.isfile(f"users/{path}/{file_name}"):
                     s_client_data.send("True".encode())
-                    new_file = open(f'users/{path}/{file_name}', "wb")
+                    new_file = open(f"users/{path}/{file_name}", "wb")
                     while True:
                         file_bytes = s_client_data.recv(receive_buffer)
                         if not file_bytes:
