@@ -1,5 +1,5 @@
 # This file contains the code needed for communication with the frontend which will be released at a later time.
-# Copyright (C) 2021  Nico Pieplow (nitrescov)
+# Copyright (C) 2022  Nico Pieplow (nitrescov)
 # Contact: nitrescov@protonmail.com
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the
@@ -15,83 +15,76 @@
 
 import os
 import socket
+import threading
+from random import randint
 
 
-def guiserver(host_ip, port, usernames, userdata):
-    separator = "<separator>"
-    send_buffer = 2097152
-    receive_buffer = 16384
-
+def socket_server(host_ip, port, usernames, userdata):
     s_receive = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s_receive.bind((host_ip, port))
     s_receive.listen()
 
     while True:
-        s_client_login, address_1 = s_receive.accept()
-        try:
-            login_packet = s_client_login.recv(receive_buffer).decode()
-            name, hash_value = login_packet.split(separator)
-            name_position = -1
-            hash_position = -1
-            for i in range(len(usernames)):
-                if name == usernames[i]:
-                    name_position = i
-            for j in range(len(userdata)):
-                if hash_value == userdata[j]:
-                    hash_position = j
-            if (name_position >= 0) and (hash_position >= 0) and (name_position == hash_position):
-                folder = ""
-                for root, dirs, files in os.walk(f"users/{name}"):
-                    folder_path = root[6:]
-                    subdir_count = folder_path.count("/")
-                    if subdir_count <= 1:
-                        folder = folder + "\n\n" + folder_path
-                    else:
-                        folder = folder + "\n" + ("  " * (subdir_count - 1)) + folder_path
+        s_client_connection, address = s_receive.accept()
+        print(f"[SOCKET LOG] Client with address {address[0]}:{address[1]} connected.")
+        threading.Thread(target=handle_connection, args=(s_client_connection, usernames, userdata), daemon=True).start()
 
-                folder = folder.encode()
-                while True:
-                    byte_block = folder[:send_buffer]
-                    if not byte_block:
-                        break
-                    s_client_login.sendall(byte_block)
-                    folder = folder[send_buffer:]
 
-                s_client_login.close()
-            else:
-                s_client_login.send("False".encode())
-                s_client_login.close()
-                continue
-        except ValueError:
-            print("[LOG] Possible security risk detected: received data with wrong number of arguments.")
-            s_client_login.close()
-            continue
+def handle_connection(connection, usernames, userdata):
+    separator = "<separator>"
+    buffer = 65536  # 64K TCP packet size
+    frame_counters = [str(randint(n*42, n*42+42)) for n in range(6)]
+    fc_list = ",".join(frame_counters)
 
-        s_client_data, address_2 = s_receive.accept()
-        if address_1[0] == address_2[0]:
-            try:
-                file_info = s_client_data.recv(receive_buffer).decode()
-                file_name, file_size, path = file_info.split(separator)
-                file_name = os.path.basename(file_name)
-                file_size = int(file_size)
-
-                if os.path.isdir(f"users/{path}") and not os.path.isfile(f"users/{path}/{file_name}"):
-                    s_client_data.send("True".encode())
-                    new_file = open(f"users/{path}/{file_name}", "wb")
-                    while True:
-                        file_bytes = s_client_data.recv(receive_buffer)
-                        if not file_bytes:
-                            break
-                        new_file.write(file_bytes)
-                    new_file.close()
+    try:
+        connection.sendall((frame_counters[0] + separator + fc_list).encode())
+        login_packet = connection.recv(buffer).decode()
+        fc1, name, hash_value = login_packet.split(separator)
+        name_position = -1
+        hash_position = -1
+        for i in range(len(usernames)):
+            if name == usernames[i]:
+                name_position = i
+        for j in range(len(userdata)):
+            if hash_value == userdata[j]:
+                hash_position = j
+        if (fc1 == frame_counters[1]) and (name_position >= 0) and (hash_position >= 0) and (name_position == hash_position):
+            folder = ""
+            for root, dirs, files in os.walk(f"users/{name}"):
+                folder_path = root[6:]
+                subdir_count = folder_path.count("/")
+                if subdir_count <= 1:
+                    folder = folder + "\n\n" + folder_path
                 else:
-                    s_client_data.send("False".encode())
+                    folder = folder + "\n" + ("  " * (subdir_count - 1)) + folder_path
 
-                s_client_data.close()
-            except ValueError:
-                print("[LOG] Possible security risk detected: server remained in wrong state. Resetting now.")
-                s_client_data.close()
-                continue
+            folder_bytes = (frame_counters[2] + separator + folder).encode()
+            while True:
+                byte_block = folder_bytes[:buffer]
+                if not byte_block:
+                    break
+                connection.sendall(byte_block)
+                folder_bytes = folder_bytes[buffer:]
+
+            file_info = connection.recv(buffer).decode()
+            fc3, file_name, file_size, path = file_info.split(separator)
+            file_name = os.path.basename(file_name)
+
+            if fc3 == frame_counters[3] and os.path.isdir(f"users/{path}") and not os.path.isfile(f"users/{path}/{file_name}"):
+                connection.sendall((frame_counters[4] + separator + "True").encode())
+                new_file = open(f"users/{path}/{file_name}", "wb")
+                while True:
+                    file_bytes = connection.recv(buffer)
+                    if not file_bytes:
+                        break
+                    new_file.write(file_bytes)
+                new_file.close()
+            else:
+                connection.sendall((frame_counters[4] + separator + "False").encode())
+            connection.close()
         else:
-            print("[LOG] Possible security risk detected: IP address of client changed during transfer.")
-            s_client_data.close()
+            connection.sendall((frame_counters[2] + separator + "False").encode())
+            connection.close()
+    except ValueError:
+        print("[SOCKET LOG] Possible security risk detected: received data with wrong number of arguments.")
+        connection.close()

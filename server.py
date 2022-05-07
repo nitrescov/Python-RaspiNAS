@@ -1,5 +1,5 @@
 # This is the main file. It's designed for deployment on a (NAS-)Server.
-# Copyright (C) 2021  Nico Pieplow (nitrescov)
+# Copyright (C) 2022  Nico Pieplow (nitrescov)
 # Contact: nitrescov@protonmail.com
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the
@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-# Currently recommended Python version: 3.10.1
+# Currently recommended Python version: 3.10.4
 
 import os
 import paste
@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.1.1'  # button style improvements (2022/02/13)
+VERSION = '1.1.2'  # rework of the socket receiver file (2022/05/07)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
@@ -423,7 +423,7 @@ def background_task():
 
 
 def start_receiver():
-    receiver.guiserver(HOSTIP, 5001, USERNAMES, USERDATA)
+    receiver.socket_server(HOSTIP, 5001, USERNAMES, USERDATA)
 
 
 #
