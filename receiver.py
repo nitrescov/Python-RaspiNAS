@@ -86,15 +86,14 @@ def handle_connection(connection, usernames, userdata):
                     raise ValueError("no packet data")
                 if fc5 != frame_counters[5]:
                     raise ValueError("invalid packet data")
-                max_packets = int(file_len / buffer) + 1
-                packet_count = 0
+                current_file_len = 0
                 new_file = open(f"users/{path}/{file_name}", "wb")
-                while packet_count < max_packets:
+                while current_file_len < file_len:
                     file_bytes = connection.recv(buffer)
                     if not file_bytes:
                         break
                     new_file.write(file_bytes)
-                    packet_count += 1
+                    current_file_len += len(file_bytes)
                 new_file.close()
             else:
                 refuse_packet = "False".encode()

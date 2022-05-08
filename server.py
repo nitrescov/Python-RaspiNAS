@@ -34,7 +34,7 @@ LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.1.3'  # add packet headers with length and frame counter for socket communication (2022/05/08)
+VERSION = '1.1.4'  # fix a problem where the uploaded file is incomplete (2022/05/08)
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
 
