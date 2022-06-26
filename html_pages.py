@@ -1,5 +1,5 @@
-# In this file the repeatedly used HTML pages are stored.
-# Copyright (C) 2021  Nico Pieplow (nitrescov)
+# In this file the commonly used HTML pages are stored.
+# Copyright (C) 2022  Nico Pieplow (nitrescov)
 # Contact: nitrescov@protonmail.com
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the

@@ -22,7 +22,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
    * Die empfohlene Python Version ist 3.10.1. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
    * Mehr Informationen befinden sich in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Als serifenlose Schriftart im Browser empfiehlt sich Arial oder Roboto.
-   * Momentan werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. Daher **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
+   * Standardmäßig werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. In diesem Fall **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
 
 
 2. Erstellen und Löschen von Nutzern:
@@ -34,7 +34,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 
 3. Einrichtung der `server.py` Datei:
    * In dieser Datei befinden sich zusätzliche Konfigurationsoptionen direkt nach den Imports unter `Server configuration and personalization`.
-   * Dort können Sprache, IP, Port, ein Besitzername und der Filter für Ordnernamen angepasst werden, das Programm ist aber auch mit den Standardeinstellungen lauffähig.
+   * Dort können Sprache, IP, Port, ein anderer Speicherpfad für die Dateien, ein Besitzername und der Filter für Ordnernamen angepasst werden, das Programm ist aber auch mit den Standardeinstellungen lauffähig.
 
 
 4. Starten des Servers:
@@ -69,7 +69,7 @@ Currently I'm the only developer behind the project. For that reason, there will
    * The recommended Python version is 3.10.1. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
    * More information can be found in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Arial or Roboto are recommended as sans serif fonts in the browser.
-   * Currently the data will be stored in directories starting from the installation home of the `server.py` file. For that reason, this parent directory **must** be stored on the same hard drive as the one where the data will go.
+   * By default, the data will be stored in directories starting from the installation home of the `server.py` file. In this case, this parent directory **must** be stored on the same hard drive as the one where the data will go.
 
 
 2. Create and delete users:
@@ -81,7 +81,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 
 3. Setup of `server.py`:
    * This file contains additional configuration options which are located right after the import section (marked with `Server configuration and personalization`).
-   * There the language, ip, port, the name of the owner und a directory naming filter can be changed, although you can still run the program with default settings.
+   * There the language, ip, port, a different target directory for uploaded files, the name of the owner und a directory naming filter can be changed, although you can still run the program with default settings.
 
 
 4. Starting the server:

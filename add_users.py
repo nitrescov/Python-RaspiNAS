@@ -1,5 +1,5 @@
 # This file creates hashed values from the user credentials and can be used to set up the needed directories.
-# Copyright (C) 2021  Nico Pieplow (nitrescov)
+# Copyright (C) 2022  Nico Pieplow (nitrescov)
 # Contact: nitrescov@protonmail.com
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the
@@ -37,7 +37,7 @@ while True:
     print("\n--- add user ---\n")
     name = input("name: ")
     pin = input("pin: ")
-    hashed = hashlib.sha224(str(pin).encode('utf-8') + str(name).encode('utf-8')).hexdigest()
+    hashed = hashlib.sha224(str(pin).encode("utf-8") + str(name).encode("utf-8")).hexdigest()
     userfile = open("usernames.dat", "a", encoding="utf-8")
     userfile.write(str(name) + "\n")
     userfile.close()
@@ -62,6 +62,7 @@ if input() == "y":
         if not os.path.isdir(f"temp/{currentName}"):
             os.mkdir(f"temp/{currentName}")
     file.close()
+    print("\n\nTo save the uploaded files in another directory, move \'temp\' and \'users\' to the respective target directory.")
 else:
     pass
 

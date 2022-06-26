@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-# Currently recommended Python version: 3.10.4
+# Currently recommended Python version: 3.10.5
 
 import os
 import paste
@@ -33,31 +33,36 @@ from html_pages import HtmlPages
 LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
 PORT = 80  # default HTTP port 80
+FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/files/')
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.1.4'  # fix a problem where the uploaded file is incomplete (2022/05/08)
-ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ "  # used to define allowed characters in directory names
-HTML = HtmlPages(OWNER, LANGUAGE)  # import repeatedly used HTML pages (to keep this file short and clear)
+VERSION = '1.2.0'  # add option to select a target path for the uploaded files (2022/06/26)
+ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
+HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
 
 # ----- Beginning of the main functions: ------------------------------------------------
 #
 # __ Load usernames and userdata: __
-names = open("usernames.dat", "r", encoding="utf-8")
+names = open('usernames.dat', 'r', encoding='utf-8')
 USERNAMES = names.readlines()
 for entry in range(len(USERNAMES)):
-    USERNAMES[entry] = USERNAMES[entry].replace("\n", "")
+    USERNAMES[entry] = USERNAMES[entry].replace('\n', '')
 names.close()
-data = open("userdata.dat", "r", encoding="utf-8")
+data = open('userdata.dat', 'r', encoding='utf-8')
 USERDATA = data.readlines()
 for entry in range(len(USERDATA)):
-    USERDATA[entry] = USERDATA[entry].replace("\n", "")
+    USERDATA[entry] = USERDATA[entry].replace('\n', '')
 data.close()
+#
+# __ Ensure the correctness of the target file path: __
+if FILEPATH and FILEPATH[-1] != '/':
+    FILEPATH += '/'
 #
 # __ Increase allowed file size of uploads: __
 bottle.BaseRequest.MEMFILE_MAX = 32 * 1024 * 1024
 #
 # __ Create random cookie-secret: __
 SECRET = ''
-SECRET_ALPHABET = "abcdefghijklmnopqrstuvwxyz1234567890"
+SECRET_ALPHABET = 'abcdefghijklmnopqrstuvwxyz1234567890'
 for i in range(64):
     SECRET += SECRET_ALPHABET[random.randint(0, len(SECRET_ALPHABET) - 1)]
 #
@@ -86,7 +91,7 @@ def login():
             login_successful = True
             break
     if login_successful:
-        bottle.response.set_cookie("user", hashed, secret=SECRET)
+        bottle.response.set_cookie('user', hashed, secret=SECRET)
         bottle.redirect(f'/files/{str(name)}')
     else:
         return HTML.LoginFailed
@@ -107,10 +112,10 @@ def list_directory(directory):
             if username == USERNAMES[position] and user == (position + 1):
                 files = []
                 folders = []
-                folder_list = ""
-                file_list = ""
-                if os.path.isdir(f'users/{folder_path}'):
-                    for (pth, fol, dat) in os.walk(f'users/{folder_path}'):
+                folder_list = ''
+                file_list = ''
+                if os.path.isdir(f'{FILEPATH}users/{folder_path}'):
+                    for (pth, fol, dat) in os.walk(f'{FILEPATH}users/{folder_path}'):
                         folders.extend(fol)
                         files.extend(dat)
                         break
@@ -138,15 +143,15 @@ def list_directory(directory):
                     for file in files:
                         file_extension = str(file).split('.')[-1]
                         file_type = 'file'
-                        if file_extension.lower() in ["png", "bmp", "jpg", "jpeg", "gif", "tga", "dds", "heic", "webp"]:
+                        if file_extension.lower() in ['png', 'bmp', 'jpg', 'jpeg', 'gif', 'tga', 'dds', 'heic', 'webp']:
                             file_type = 'image'
-                        elif file_extension.lower() in ["zip", "tar", "7z", "gz", "deb", "rpm"]:
+                        elif file_extension.lower() in ['zip', 'tar', '7z', 'gz', 'deb', 'rpm']:
                             file_type = 'zip_folder'
-                        elif file_extension.lower() in ["mkv", "webm", "flv", "avi", "mov", "wmv", "mp4", "m4v"]:
+                        elif file_extension.lower() in ['mkv', 'webm', 'flv', 'avi', 'mov', 'wmv', 'mp4', 'm4v']:
                             file_type = 'video'
-                        elif file_extension.lower() in ["pdf"]:
+                        elif file_extension.lower() in ['pdf']:
                             file_type = 'pdf'
-                        elif file_extension.lower() in ["aac", "mp3", "m4a", "acc", "wav", "wma", "ogg", "flac", "aiff", "alac", "dsd", "mqa", "opus"]:
+                        elif file_extension.lower() in ['aac', 'mp3', 'm4a', 'acc', 'wav', 'wma', 'ogg', 'flac', 'aiff', 'alac', 'dsd', 'mqa', 'opus']:
                             file_type = 'music'
                         else:
                             pass
@@ -211,9 +216,9 @@ def list_directory(directory):
                                f'font-family:sans-serif; font-size:14px; margin-top:8px" required />'
                                f'</form></div>')
 
-                    show_path = ""
+                    show_path = ''
                     if len(folder_path.split('/')) > 1:
-                        show_path = (' / '.join(folder_path.split('/')[1:])) + " / "
+                        show_path = (' / '.join(folder_path.split('/')[1:])) + ' / '
                     header_language = [f'{username}\'s files', 'files', 'folder(s)', 'file(s)', 'version']
                     if LANGUAGE == 'de':
                         header_language = [f'Dateien von {username}', 'Dateien', 'Ordner', 'Dateien', 'Version']
@@ -253,7 +258,7 @@ def download_file(filepath):
         directory = '/'.join(str(filepath).split('/')[:-1])
         for position in range(len(USERNAMES)):
             if username == USERNAMES[position] and user == (position + 1):
-                return bottle.static_file(file, root='users/' + directory, download=file)
+                return bottle.static_file(file, root=f'{FILEPATH}users/{directory}', download=file)
     return HTML.AccessDenied
 
 
@@ -266,11 +271,11 @@ def download_zip(zippath):
         folder_name = directory.split('/')[-1]
         for position in range(len(USERNAMES)):
             if username == USERNAMES[position] and user == (position + 1):
-                if os.path.isfile(f'temp/{username}/{folder_name}.zip'):
-                    os.remove(f'temp/{username}/{folder_name}.zip')
-                shutil.make_archive(f'temp/{username}/{folder_name}', 'zip', f'users/{directory}')
-                # subprocess.run(f"zip -r ./temp/{username}/{folder_name}.zip ./users/{directory}/", shell=True, stdout=subprocess.DEVNULL)
-                return bottle.static_file(f'{folder_name}.zip', root=f'temp/{username}', download=f'{folder_name}.zip')
+                if os.path.isfile(f'{FILEPATH}temp/{username}/{folder_name}.zip'):
+                    os.remove(f'{FILEPATH}temp/{username}/{folder_name}.zip')
+                shutil.make_archive(f'{FILEPATH}temp/{username}/{folder_name}', 'zip', f'{FILEPATH}users/{directory}')
+                # subprocess.run(f'zip -r {FILEPATH}temp/{username}/{folder_name}.zip {FILEPATH}users/{directory}/', shell=True, stdout=subprocess.DEVNULL)
+                return bottle.static_file(f'{folder_name}.zip', root=f'{FILEPATH}temp/{username}', download=f'{folder_name}.zip')
     return HTML.AccessDenied
 
 
@@ -286,9 +291,9 @@ def delete_directory(deldirectorypath):
             return
         for position in range(len(USERNAMES)):
             if username == USERNAMES[position] and user == (position + 1):
-                if os.path.isdir(f'users/{directory}'):
-                    shutil.rmtree(f'users/{directory}')
-                    # subprocess.run(f"rm -rf users/{directory}", shell=True, stdout=subprocess.DEVNULL)
+                if os.path.isdir(f'{FILEPATH}users/{directory}'):
+                    shutil.rmtree(f'{FILEPATH}users/{directory}')
+                    # subprocess.run(f'rm -rf {FILEPATH}users/{directory}', shell=True, stdout=subprocess.DEVNULL)
                     bottle.redirect(f'/files/{prior_folder}')
                 else:
                     return HTML.NoDirectory
@@ -304,8 +309,8 @@ def delete_file(delfilepath):
         username = filepath.split('/')[0]
         for position in range(len(USERNAMES)):
             if username == USERNAMES[position] and user == (position + 1):
-                if os.path.isfile(f'users/{filepath}'):
-                    os.remove(f'users/{filepath}')
+                if os.path.isfile(f'{FILEPATH}users/{filepath}'):
+                    os.remove(f'{FILEPATH}users/{filepath}')
                     bottle.redirect(f'/files/{folder}')
                 else:
                     return HTML.NoFile
@@ -332,8 +337,8 @@ def create_directory(parentpath):
                 if len(new_folder) == 0 or len(new_folder) == new_folder.count(' '):
                     new_folder = 'new_folder'
                 #
-                if not os.path.isdir(f'users/{directory}/{new_folder}'):
-                    os.mkdir(f'users/{directory}/{new_folder}')
+                if not os.path.isdir(f'{FILEPATH}users/{directory}/{new_folder}'):
+                    os.mkdir(f'{FILEPATH}users/{directory}/{new_folder}')
                 bottle.redirect(f'/files/{directory}')
     return HTML.AccessDenied
 
@@ -348,12 +353,12 @@ def unpack_zipfile(ziptarget):
         username = target_folder.split('/')[0]
         for position in range(len(USERNAMES)):
             if username == USERNAMES[position] and user == (position + 1):
-                if os.path.isfile(f'users/{target_folder}/{zipfile}') and \
-                        not os.path.isdir(f'users/{target_folder}/{folder_name}') and \
+                if os.path.isfile(f'{FILEPATH}users/{target_folder}/{zipfile}') and \
+                        not os.path.isdir(f'{FILEPATH}users/{target_folder}/{folder_name}') and \
                         zipfile.split('.')[-1] == 'zip':
-                    os.mkdir(f'users/{target_folder}/{folder_name}')
-                    shutil.unpack_archive(f'users/{target_folder}/{zipfile}', f'users/{target_folder}/{folder_name}', 'zip')
-                    # subprocess.run(f"unzip ./users/{target_folder}/{zipfile} -d ./users/{target_folder}/{folder_name}", shell=True, stdout=subprocess.DEVNULL)
+                    os.mkdir(f'{FILEPATH}users/{target_folder}/{folder_name}')
+                    shutil.unpack_archive(f'{FILEPATH}users/{target_folder}/{zipfile}', f'{FILEPATH}users/{target_folder}/{folder_name}', 'zip')
+                    # subprocess.run(f'unzip {FILEPATH}users/{target_folder}/{zipfile} -d {FILEPATH}users/{target_folder}/{folder_name}', shell=True, stdout=subprocess.DEVNULL)
                     bottle.redirect(f'/files/{target_folder}/{folder_name}')
                 else:
                     error_language = ['Unpacking failed', 'Error: The given file does not exist or the target directory is not empty.', 'Back']
@@ -388,14 +393,14 @@ def upload_file(targetpath):
             if username == USERNAMES[position] and user == (position + 1):
                 new_file = bottle.request.files.get('filename')
                 copy_count = 0
-                while os.path.isfile(f'users/{target_folder}/{new_file.filename}'):
+                while os.path.isfile(f'{FILEPATH}users/{target_folder}/{new_file.filename}'):
                     copy_count += 1
                     name_parts = new_file.filename.split('.')
                     if copy_count > 1:
                         name_parts[-2] = name_parts[-2][:-3]
-                    name_parts[-2] = name_parts[-2] + f"({copy_count})"
+                    name_parts[-2] = name_parts[-2] + f'({copy_count})'
                     new_file.filename = '.'.join(name_parts)
-                new_file.save(f'users/{target_folder}')
+                new_file.save(f'{FILEPATH}users/{target_folder}')
                 bottle.redirect(f'/files/{target_folder}')
     return HTML.AccessDenied
 
@@ -406,7 +411,7 @@ def get_icon(image):
 
 
 def check_login():
-    hashed_credentials = bottle.request.get_cookie("user", secret=SECRET)
+    hashed_credentials = bottle.request.get_cookie('user', secret=SECRET)
     if hashed_credentials:
         for position in range(len(USERDATA)):
             if hashed_credentials == USERDATA[position]:
@@ -418,8 +423,8 @@ def background_task():
     while True:
         thread_wait.wait(1800)
         for name in USERNAMES:
-            for temp_file in os.listdir(f'temp/{name}'):
-                os.remove(f'temp/{name}/{temp_file}')
+            for temp_file in os.listdir(f'{FILEPATH}temp/{name}'):
+                os.remove(f'{FILEPATH}temp/{name}/{temp_file}')
 
 
 def start_receiver():
