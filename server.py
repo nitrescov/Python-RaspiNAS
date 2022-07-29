@@ -15,8 +15,10 @@
 
 # Currently recommended Python version: 3.10.5
 
+import gevent
+from gevent import monkey
+monkey.patch_all()
 import os
-import paste
 import random
 import bottle
 import shutil
@@ -25,17 +27,18 @@ import threading
 import receiver
 from html_pages import HtmlPages
 
-# import cherrypy  # (100MB upload limit)
 # import subprocess  # alternative to shutil
 
 # ----- Server configuration and personalization: ---------------------------------------
 
 LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
 HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
-PORT = 80  # default HTTP port 80
+PORT = 443  # default HTTPS port 443
 FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/files/')
+CERT = 'raspinas.crt'  # name (or path) of the SSL certificate file
+KEY = 'raspinas.key'  # name (or path) of the SSL key file
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.2.0'  # add option to select a target path for the uploaded files (2022/06/26)
+VERSION = '1.3.0'  # use HTTPS with a self-signed certificate instead of HTTP (2022/07/29)
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
 
@@ -442,10 +445,4 @@ receiver_thread = threading.Thread(target=start_receiver, daemon=True)
 receiver_thread.start()
 #
 # __ Start the webserver: __
-# cherrypy.tree.graft(webapp, '/')
-# cherrypy.config.update({'server.socket_host': '0.0.0.0',
-#                         'server.socket_port': 80,
-#                         'engine.autoreload.on': False,
-#                         })
-# cherrypy.engine.start()
-bottle.run(webapp, server='paste', host=HOSTIP, port=PORT)
+bottle.run(webapp, server='gevent', host=HOSTIP, port=PORT, certfile=CERT, keyfile=KEY)
