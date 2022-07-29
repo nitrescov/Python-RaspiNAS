@@ -19,7 +19,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 ## Einrichtung
 
 1. Vorbereitung:
-   * Die empfohlene Python Version ist 3.10.5. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
+   * Die derzeit empfohlene Python Version ist 3.10.5. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
    * Mehr Informationen befinden sich in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Als serifenlose Schriftart im Browser empfiehlt sich Arial oder Roboto.
    * Standardmäßig werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. In diesem Fall **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
@@ -37,17 +37,27 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
    * Dort können Sprache, IP, Port, ein anderer Speicherpfad für die Dateien, ein Besitzername und der Filter für Ordnernamen angepasst werden. Das Programm ist aber auch mit den Standardeinstellungen lauffähig.
 
 
-4. Starten des Servers:
+4. Erstellen eines selbst-signierten SSL-Zertifikates (mehr Details bei [Baeldung](https://www.baeldung.com/openssl-self-signed-cert)):
+   * Zunächst muss OpenSSL installiert sein (`sudo apt install openssl` / `sudo pacman -S openssl`).
+   * Die nun folgenden Befehle sollten im Hauptverzeichnis (normal `Python-RaspiNAS/`) ausgeführt werden. Alternativ können sie angepasst werden, um das Zertifikat mit anderen Voreinstellungen und/oder an einem anderen Ort zu speichern.
+     * Die Key-Datei generieren: `openssl genrsa -out raspinas.key 2048`
+     * Eine "certificate signing request" erstellen: `openssl req -key raspinas.key -new -out raspinas.csr`<br>
+       (Teilweise kann es vorkommen, dass vom Browser später ein Eintrag im "Common Name" Feld erwartet wird.)
+     * Das Zertifikat erzeugen: `openssl x509 -signkey raspinas.key -in raspinas.csr -req -days 365 -out raspinas.crt`<br>
+       (Die Gültigkeitsdauer des Zertifikates in Tagen kann nach Belieben verändert werden.)
+
+
+5. Starten des Servers:
    * Da sich das Projekt zur Nutzung auf dem [Raspberry Pi](https://www.raspberrypi.org/) eignet, zunächst ein Hinweis hierfür: Damit der Server auch nach dem schließen einer SSH-Verbindung weiterläuft, eignet sich [screen](https://www.gnu.org/software/screen/) als Tool.
-   * Befindet man sich mit dem Terminal im Hauptverzeichnis (normal `Python-RaspiNAS/`), kann er ganz einfach mit dem Befehl `python3 server.py` gestartet werden.
+   * Befindet man sich mit dem Terminal im Hauptverzeichnis, kann er ganz einfach mit dem Befehl `python3 server.py` gestartet werden.
    * Ein mögliches Problem, dass Schreibrechte beim Ordnermanagement durch Python fehlen, kann - wenn man dem Code vertraut - durch die Ausführung mit `sudo` behoben werden. Eine alternative und bessere Lösung ist die Nutzung der Rechteverwaltung unter Linux.
 
 
-5. Beenden des Servers:
+6. Beenden des Servers:
    * Der wohl einfachste Schritt: (screen -r) und STRG + C
 
 > Hinweis:<br>
-> Das Programm sollte derzeit ausschließlich auf einem nicht öffentlich erreichbaren Heimserver genutzt werden. Auch wenn die Anmeldedaten mittels SHA224 gehasht und über einen mit einem zufälligen SECRET-Token gesicherten Cookie übertragen werden, sind die Dateien beim Up- und Download allerdings **nicht** verschlüsselt oder anderweitig geschützt.
+> Das Programm sollte derzeit ausschließlich auf einem nicht öffentlich erreichbaren Heimserver genutzt werden. Die Anmeldedaten werden mittels SHA224 gehasht und über einen mit einem zufälligen SECRET-Token gesicherten Cookie übertragen. Auch die Verbindung wird inzwischen per SSL/TLS abgesichert, aber es existiert aktuell keinerlei Schutz gegen spezifische Angriffe auf den Server (z.B. Brute-Force-Attacken).
 
 ---
 
@@ -66,7 +76,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 ## Setup
 
 1. Preparation:
-   * The recommended Python version is 3.10.5. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
+   * The currently recommended Python version is 3.10.5. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
    * More information can be found in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Arial or Roboto are recommended as sans serif fonts in the browser.
    * By default, the data will be stored in directories starting from the installation home of the `server.py` file. In this case, this parent directory **must** be stored on the same hard drive as the one where the data will go.
@@ -81,17 +91,27 @@ Currently I'm the only developer behind the project. For that reason, there will
 
 3. Setup of `server.py`:
    * This file contains additional configuration options which are located right after the import section (marked with `Server configuration and personalization`).
-   * There the language, ip, port, a different target directory for uploaded files, the name of the owner und a directory naming filter can be changed, although you can still run the program with default settings.
+   * There the language, ip, port, a different target directory for the files, the name of the owner und a directory naming filter can be changed, although you can still run the program with default settings.
 
 
-4. Starting the server:
+4. Create a self-signed SSL certificate (more details at [Baeldung](https://www.baeldung.com/openssl-self-signed-cert)):
+   * First, OpenSSL must be installed (`sudo apt install openssl` / `sudo pacman -S openssl`).
+   * The following commands should be executed in the installation home (default `Python-RaspiNAS/`). Alternatively, they can be customized to save the certificate with different preferences and/or in a different location.
+     * Generate the key file: `openssl genrsa -out raspinas.key 2048`
+     * Create a certificate signing request: `openssl req -key raspinas.key -new -out raspinas.csr`<br>
+       (Sometimes it can happen that the browser expects an entry in the "Common Name" field later.)
+     * Generate the certificate: `openssl x509 -signkey raspinas.key -in raspinas.csr -req -days 365 -out raspinas.crt`<br>
+       (The validity of the certificate in days can be changed at will.)
+
+
+5. Starting the server:
    * Because the project is suitable for use on a [Raspberry Pi](https://www.raspberrypi.org/), first of all a hint for that: To make the server keep running after closing a SSH connection, you can use the tool [screen](https://www.gnu.org/software/screen/).
-   * If you are using your Terminal in the installation home (default `Python-RaspiNAS/`), just type the command `python3 server.py` to start the application.
+   * If you are using your Terminal in the installation home, just type the command `python3 server.py` to start the application.
    * A potential problem caused by missing writing permissions when Python tries to manage directories can be solved using `sudo` - if you trust the code. An alternative and better solution is to use the Linux rights management.
 
 
-5. Shutdown the server:
+6. Shutdown the server:
    * Probably the easiest part: (screen -r) and CTRL + C
 
 > Note:<br>
-> The program should currently only be used on a home server that is not publicly accessible. Even though the login data is hashed using SHA224 and transferred via a cookie secured with a random SECRET token, the files are **not** encrypted or otherwise protected during upload and download.
+> The program should currently only be used on a home server that is not publicly accessible. The login data is hashed using SHA224 and transferred via a cookie secured with a random SECRET token. The connection is now also secured via SSL/TLS, but there is currently no protection against specific attacks targeting the server (e.g. brute force attacks).
