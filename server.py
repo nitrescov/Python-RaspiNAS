@@ -24,7 +24,7 @@ import bottle
 import shutil
 import hashlib
 import threading
-import receiver
+import socket_interface
 from html_pages import HtmlPages
 
 # import subprocess  # alternative to shutil
@@ -87,7 +87,7 @@ def home():
 def login():
     name = bottle.request.forms.get('name')
     pin = bottle.request.forms.get('pin')
-    hashed = hashlib.sha224(str(pin).encode('utf-8') + str(name).encode('utf-8')).hexdigest()
+    hashed = hashlib.sha384(str(pin).encode('utf-8') + str(name).encode('utf-8')).hexdigest()
     login_successful = False
     for item in USERDATA:
         if item == hashed:
@@ -424,14 +424,14 @@ def check_login():
 
 def background_task():
     while True:
-        thread_wait.wait(1800)
+        thread_wait.wait(21600)
         for name in USERNAMES:
             for temp_file in os.listdir(f'{FILEPATH}temp/{name}'):
                 os.remove(f'{FILEPATH}temp/{name}/{temp_file}')
 
 
-def start_receiver():
-    receiver.socket_server(HOSTIP, 5001, USERNAMES, USERDATA)
+def start_socket_interface():
+    socket_interface.socket_server(HOSTIP, 5001, USERNAMES, USERDATA, FILEPATH)
 
 
 #
@@ -441,8 +441,8 @@ background_thread = threading.Thread(target=background_task, daemon=True)
 background_thread.start()
 #
 # __ Start gui server to receive data from the frontend: __
-receiver_thread = threading.Thread(target=start_receiver, daemon=True)
-receiver_thread.start()
+socket_thread = threading.Thread(target=start_socket_interface, daemon=True)
+socket_thread.start()
 #
 # __ Start the webserver: __
 bottle.run(webapp, server='gevent', host=HOSTIP, port=PORT, certfile=CERT, keyfile=KEY)
