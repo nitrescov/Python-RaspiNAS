@@ -37,7 +37,7 @@ while True:
     print("\n--- add user ---\n")
     name = input("name: ")
     pin = input("pin: ")
-    hashed = hashlib.sha224(str(pin).encode("utf-8") + str(name).encode("utf-8")).hexdigest()
+    hashed = hashlib.sha384(str(pin).encode("utf-8") + str(name).encode("utf-8")).hexdigest()
     userfile = open("usernames.dat", "a", encoding="utf-8")
     userfile.write(str(name) + "\n")
     userfile.close()
