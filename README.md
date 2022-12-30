@@ -57,7 +57,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
    * Der wohl einfachste Schritt: (screen -r) und STRG + C
 
 > Hinweis:<br>
-> Das Programm sollte derzeit ausschließlich auf einem nicht öffentlich erreichbaren Heimserver genutzt werden. Die Anmeldedaten werden mittels SHA224 gehasht und über einen mit einem zufälligen SECRET-Token gesicherten Cookie übertragen. Auch die Verbindung wird inzwischen per SSL/TLS abgesichert, aber es existiert aktuell keinerlei Schutz gegen spezifische Angriffe auf den Server (z.B. Brute-Force-Attacken).
+> Das Programm sollte derzeit ausschließlich auf einem nicht öffentlich erreichbaren Heimserver genutzt werden. Die Anmeldedaten werden mittels SHA384 gehasht und über einen mit einem zufälligen SECRET-Token gesicherten Cookie übertragen. Auch die Verbindung wird inzwischen per SSL/TLS abgesichert, aber es existiert aktuell keinerlei Schutz gegen spezifische Angriffe auf den Server (z.B. Brute-Force-Attacken).
 
 ---
 
@@ -114,4 +114,4 @@ Currently I'm the only developer behind the project. For that reason, there will
    * Probably the easiest part: (screen -r) and CTRL + C
 
 > Note:<br>
-> The program should currently only be used on a home server that is not publicly accessible. The login data is hashed using SHA224 and transferred via a cookie secured with a random SECRET token. The connection is now also secured via SSL/TLS, but there is currently no protection against specific attacks targeting the server (e.g. brute force attacks).
+> The program should currently only be used on a home server that is not publicly accessible. The login data is hashed using SHA384 and transferred via a cookie secured with a random SECRET token. The connection is now also secured via SSL/TLS, but there is currently no protection against specific attacks targeting the server (e.g. brute force attacks).
