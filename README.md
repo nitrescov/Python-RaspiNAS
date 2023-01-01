@@ -19,7 +19,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 ## Einrichtung
 
 1. Vorbereitung:
-   * Die derzeit empfohlene Python Version ist 3.10.5. [Bottle](https://bottlepy.org) wurde in der Version 0.12.19 genutzt (aktuellere können funktionieren).
+   * Die derzeit empfohlene Python Version ist 3.10.9. [Bottle](https://bottlepy.org) wurde in der Version 0.12.23 genutzt (aktuellere können funktionieren).
    * Mehr Informationen befinden sich in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Als serifenlose Schriftart im Browser empfiehlt sich Arial oder Roboto.
    * Standardmäßig werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. In diesem Fall **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
@@ -76,7 +76,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 ## Setup
 
 1. Preparation:
-   * The currently recommended Python version is 3.10.5. [Bottle](https://bottlepy.org) was tested with version 0.12.19 (newer could still work).
+   * The currently recommended Python version is 3.10.9. [Bottle](https://bottlepy.org) was tested with version 0.12.23 (newer could still work).
    * More information can be found in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Arial or Roboto are recommended as sans serif fonts in the browser.
    * By default, the data will be stored in directories starting from the installation home of the `server.py` file. In this case, this parent directory **must** be stored on the same hard drive as the one where the data will go.

@@ -23,7 +23,7 @@ import threading
 # Constants
 BUFFER = 2**12  # Recommended INET packet size (4096 Bytes)
 MAX_CMD_SIZE = 2**27  # Max command packet size to be cached in RAM (128 MB)
-SEPARATOR = "<separator>"
+SEPARATOR = "\n"
 
 # Communication Protocol:
 # SERVER        CLIENT

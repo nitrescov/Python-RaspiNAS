@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-# Currently recommended Python version: 3.10.5
+# Currently recommended Python version: 3.10.9
 
 import gevent
 from gevent import monkey
@@ -38,7 +38,7 @@ FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/file
 CERT = 'raspinas.crt'  # name (or path) of the SSL certificate file
 KEY = 'raspinas.key'  # name (or path) of the SSL key file
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.3.1'  # update the icon pack - inspired by https://www.flaticon.com/authors/juicy-fish (2022/09/10)
+VERSION = '1.3.2'  # update the icon pack - inspired by https://www.flaticon.com/authors/juicy-fish (2022/09/10)
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
 
