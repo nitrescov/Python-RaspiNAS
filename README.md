@@ -19,7 +19,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 ## Einrichtung
 
 1. Vorbereitung:
-   * Die derzeit empfohlene Python Version ist 3.10.9. [Bottle](https://bottlepy.org) wurde in der Version 0.12.23 genutzt (aktuellere können funktionieren).
+   * Die derzeit empfohlene Python Version ist 3.10.9. [Bottle](https://bottlepy.org) wurde in der Version 0.12.23 genutzt (aktuellere sollten funktionieren).
    * Mehr Informationen befinden sich in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Als serifenlose Schriftart im Browser empfiehlt sich Arial oder Roboto.
    * Standardmäßig werden Daten in Ordnern ausgehend vom Installationsverzeichnis der `server.py` Datei gespeichert. In diesem Fall **muss** dieses Verzeichnis auf der gleichen Festplatte liegen, auf der später die Daten abgelegt werden sollen.
@@ -50,7 +50,7 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
 5. Starten des Servers:
    * Da sich das Projekt zur Nutzung auf dem [Raspberry Pi](https://www.raspberrypi.org/) eignet, zunächst ein Hinweis hierfür: Damit der Server auch nach dem schließen einer SSH-Verbindung weiterläuft, eignet sich [screen](https://www.gnu.org/software/screen/) als Tool.
    * Befindet man sich mit dem Terminal im Hauptverzeichnis, kann er ganz einfach mit dem Befehl `python3 server.py` gestartet werden.
-   * Ein mögliches Problem, dass Schreibrechte beim Ordnermanagement durch Python fehlen, kann - wenn man dem Code vertraut - durch die Ausführung mit `sudo` behoben werden. Eine alternative und bessere Lösung ist die Nutzung der Rechteverwaltung unter Linux.
+   * Durch die verwendeten Socket-Verbindungen muss das Programm mit erhöhten Rechten ausgeführt werden (z.B. `sudo`). Dies kann mit ein paar Tricks umgangen werden, was jedoch mit Python als Interpretersprache nicht ganz einfach ist.
 
 
 6. Beenden des Servers:
@@ -76,7 +76,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 ## Setup
 
 1. Preparation:
-   * The currently recommended Python version is 3.10.9. [Bottle](https://bottlepy.org) was tested with version 0.12.23 (newer could still work).
+   * The currently recommended Python version is 3.10.9. [Bottle](https://bottlepy.org) was tested with version 0.12.23 (newer should work).
    * More information can be found in `requirements.txt`. Installation: `pip3 install -r requirements.txt`
    * Arial or Roboto are recommended as sans serif fonts in the browser.
    * By default, the data will be stored in directories starting from the installation home of the `server.py` file. In this case, this parent directory **must** be stored on the same hard drive as the one where the data will go.
@@ -107,7 +107,7 @@ Currently I'm the only developer behind the project. For that reason, there will
 5. Starting the server:
    * Because the project is suitable for use on a [Raspberry Pi](https://www.raspberrypi.org/), first of all a hint for that: To make the server keep running after closing a SSH connection, you can use the tool [screen](https://www.gnu.org/software/screen/).
    * If you are using your Terminal in the installation home, just type the command `python3 server.py` to start the application.
-   * A potential problem caused by missing writing permissions when Python tries to manage directories can be solved using `sudo` - if you trust the code. An alternative and better solution is to use the Linux rights management.
+   * Due to the socket connections used, the program must be executed with elevated privileges (e.g. `sudo`). This can be circumvented with a few tricks, but this isn't particularly easy with Python as an interpreter language.
 
 
 6. Shutdown the server:
