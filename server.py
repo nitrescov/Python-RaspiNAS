@@ -15,9 +15,6 @@
 
 # Currently recommended Python version: 3.10.9
 
-import gevent
-from gevent import monkey
-monkey.patch_all()
 import os
 import random
 import bottle
@@ -26,6 +23,10 @@ import hashlib
 import threading
 import socket_interface
 from html_pages import HtmlPages
+
+# import gevent
+from gevent import monkey
+monkey.patch_all()
 
 # import subprocess  # alternative to shutil
 
@@ -38,7 +39,7 @@ FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/file
 CERT = 'raspinas.crt'  # name (or path) of the SSL certificate file
 KEY = 'raspinas.key'  # name (or path) of the SSL key file
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.3.2'  # rework the socket interface (2023/01/01)
+VERSION = '1.3.3'  # adjust the socket interface protocol (2023/01/29)
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
 
