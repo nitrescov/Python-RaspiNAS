@@ -30,40 +30,48 @@ SEPARATOR = "\n"
 # SERVER        CLIENT
 #       <------- [CMD]
 # [RSP] ------->
+#       <------- [CDT]      | Optional command data
+# [RDT] ------->            | Optional response data
 #
 # To indicate an invalid checksum, a check response is received after each packet sent:
 # SENDING DATA                  RECEIVING DATA              SIZE
-# Send header                   Receive header              60 Bytes                    |
+# Send header                   Receive header              58 Bytes                    |
 # Send data                     Receive data                Length specified in header  |
 # Receive check response        Send check response         2 Bytes                     V
 #
-# Header structure:         [ 8 Bytes packet length | 2 Bytes secondary header length | 1 Byte packet command | 1 Byte content type | 48 Bytes SHA384 checksum ]
+# Header structure:         [ 8 Bytes packet length | 1 Byte packet command | 1 Byte content type | 48 Bytes SHA384 checksum ]
 # Check response structure: [ 1 Byte packet command | 1 Byte validity indicator ]
+#
+# Packet command structure: [ 1 Bit additional data indicator | 1 Bit response indicator | 6 Bits command type ]
 
-# List of commands and responses
-# CMD_RESERVED = 0x00
-CMD_LOGIN = 0x01
-RSP_LOGIN = 0x02
-CMD_UPLOAD_FILE = 0x03
-RSP_UPLOAD_FILE = 0x04
-CMD_GET_DIRECTORIES = 0x05
-RSP_GET_DIRECTORIES = 0x06
-CMD_DOWNLOAD_FILE = 0x07
-RSP_DOWNLOAD_FILE = 0x08
-CMD_DOWNLOAD_FOLDER = 0x09
-RSP_DOWNLOAD_FOLDER = 0x0a
+# List of commands and related data (CMDs are expandable up to 0x3f (63), the other command types are calculated depending on them)
+CMD_LOGIN = 0x00
+CMD_GET_DIRECTORIES = 0x01
+CMD_UPLOAD_FILE = 0x02
+CMD_DOWNLOAD_FILE = 0x03
+CMD_DOWNLOAD_FOLDER = 0x04
+
+CDT_UPLOAD_FILE = CMD_UPLOAD_FILE | (1 << 7)
+
+# List of responses and related data
+RSP_LOGIN = CMD_LOGIN | (1 << 6)
+RSP_GET_DIRECTORIES = CMD_GET_DIRECTORIES | (1 << 6)
+RSP_UPLOAD_FILE = CMD_UPLOAD_FILE | (1 << 6)
+RSP_DOWNLOAD_FILE = CMD_DOWNLOAD_FILE | (1 << 6)
+RSP_DOWNLOAD_FOLDER = CMD_DOWNLOAD_FOLDER | (1 << 6)
+
+RDT_UPLOAD_FILE = CMD_UPLOAD_FILE | (1 << 6) | (1 << 7)
 
 # List of content types
-# TYPE_RESERVED = 0x00
+TYPE_NONE = 0x00
 TYPE_DATA = 0x01
 TYPE_FILE = 0x02
 TYPE_FAILURE = 0x03
 TYPE_SUCCESS = 0x04
 
 # List of validity indicator states
-# CHECK_RESERVED = 0x00
+CHECK_INVALID = 0x00
 CHECK_VALID = 0x01
-CHECK_INVALID = 0x02
 
 
 def socket_server(host_ip: str, port: int, usernames: list[str], userdata: list[str], basepath: str) -> None:
@@ -84,7 +92,7 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
 
         # Login phase (executed only once per session)
         for counter in range(RETRY_COUNT):  # Loop for receiving the login data
-            packet_len, packet_cmd, packet_type, packet_checksum, packet_secondary_header = receive_header(connection)
+            packet_len, packet_cmd, packet_type, packet_checksum = receive_header(connection)
             if packet_cmd != CMD_LOGIN or packet_type != TYPE_DATA or not (0 < packet_len <= MAX_CMD_SIZE):
                 raise ValueError("No login data received")
             packet_content = receive_data(connection, packet_len)
@@ -121,130 +129,103 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
         # Command phase (accepting commands in a loop that only breaks if the connection is closed or an error occurs)
         while True:
 
+            pending_data = False
             for counter in range(RETRY_COUNT):  # Loop for receiving commands
-                packet_len, packet_cmd, packet_type, packet_checksum, packet_secondary_header = receive_header(connection)
-                if packet_type == TYPE_DATA:
+                packet_len, packet_cmd, packet_type, packet_checksum = receive_header(connection)
+                if packet_type == TYPE_NONE and packet_len == 0:
+                    packet_content = None
+                    if packet_cmd in [CMD_GET_DIRECTORIES]:
+                        send_check_response(connection, packet_cmd, CHECK_VALID)
+                        break
+                    else:
+                        raise ValueError(f"Invalid packet command ({packet_cmd})")
+                elif packet_type == TYPE_DATA and packet_len > 0:
                     if packet_len > MAX_CMD_SIZE:
                         raise ValueError(f"Packet is no file, but larger than the maximum of {MAX_CMD_SIZE // (2 ** 20)} MB")
-                    if packet_cmd == CMD_GET_DIRECTORIES and packet_len == 0:
-                        packet_content = None
-                        send_check_response(connection, CMD_GET_DIRECTORIES, CHECK_VALID)
-                        break
-                    elif packet_cmd == CMD_DOWNLOAD_FILE and packet_len > 0:
-                        packet_content = receive_data(connection, packet_len)
+                    packet_content = receive_data(connection, packet_len)
+                    if packet_cmd in [CMD_UPLOAD_FILE, CMD_DOWNLOAD_FILE, CMD_DOWNLOAD_FOLDER]:
                         if calc_hash(packet_content) == packet_checksum:
-                            send_check_response(connection, CMD_DOWNLOAD_FILE, CHECK_VALID)
+                            send_check_response(connection, packet_cmd, CHECK_VALID)
                             break
                         else:
-                            send_check_response(connection, CMD_DOWNLOAD_FILE, CHECK_INVALID)
-                            continue
-                    elif packet_cmd == CMD_DOWNLOAD_FOLDER and packet_len > 0:
-                        packet_content = receive_data(connection, packet_len)
-                        if calc_hash(packet_content) == packet_checksum:
-                            send_check_response(connection, CMD_DOWNLOAD_FOLDER, CHECK_VALID)
-                            break
-                        else:
-                            send_check_response(connection, CMD_DOWNLOAD_FOLDER, CHECK_INVALID)
+                            send_check_response(connection, packet_cmd, CHECK_INVALID)
                             continue
                     else:
-                        raise ValueError(f"Invalid packet command ({packet_cmd}) or length ({packet_len})")
-                elif packet_type == TYPE_FILE and packet_secondary_header:
-                    if packet_cmd == CMD_UPLOAD_FILE and packet_len > 0:
-                        file_name, file_size, file_path = packet_secondary_header.decode("utf-8").split(SEPARATOR)
-                        file_name = os.path.basename(file_name)
-                        path_to_save = os.path.join(basepath, "users", file_path, file_name)
-                        if int(file_size) != packet_len or not file_path.startswith(user_name) \
-                                or not os.path.isdir(os.path.join(basepath, "users", file_path)) or os.path.isfile(path_to_save):
-                            packet_content = None
-                            send_check_response(connection, CMD_UPLOAD_FILE, CHECK_VALID)
-                            break
-                        else:
-                            current_file_len = 0
-                            with open(path_to_save, "wb") as new_file:
-                                while current_file_len < packet_len:
-                                    file_buffer = connection.recv(min(BUFFER, packet_len - current_file_len))
-                                    if not file_buffer:
-                                        raise Exception(f"File transfer interrupted (broken file: {path_to_save})")
-                                    new_file.write(file_buffer)
-                                    current_file_len += len(file_buffer)
-                            if calc_hash(path_to_save) == packet_checksum:
-                                packet_content = path_to_save.encode("utf-8")
-                                send_check_response(connection, CMD_UPLOAD_FILE, CHECK_VALID)
-                                break
-                            else:
-                                os.remove(path_to_save)
-                                send_check_response(connection, CMD_UPLOAD_FILE, CHECK_INVALID)
-                                continue
-                    else:
-                        raise ValueError(f"Invalid file transfer command ({packet_cmd}) or file size ({packet_len})")
+                        raise ValueError(f"Invalid packet command ({packet_cmd})")
                 else:
-                    raise ValueError(f"Invalid command packet type ({packet_type})")
+                    raise ValueError(f"Invalid command packet type ({packet_type}) or inappropriate length ({packet_len})")
             if counter >= (RETRY_COUNT - 1):
                 raise ValueError(f"Retry count ({RETRY_COUNT}) exceeded")
 
             # Process the received data and create responses
-            response_len = 0
-            response_type = TYPE_FAILURE
-            response_checksum = bytes(48)
-            response_secondary_header = bytes()
+            response_len, response_cmd, response_type, response_checksum = 0, 0, 0, bytes(48)
+            response_content, file_name, file_path = None, None, None
 
             if packet_cmd == CMD_GET_DIRECTORIES:
                 response_cmd = RSP_GET_DIRECTORIES
+                response_type = TYPE_DATA
                 folders = list()
                 for root, dirs, files in os.walk(os.path.join(basepath, "users", user_name)):
                     folders.append(root.replace(os.path.join(basepath, "users") + "/", ""))
                 response_content = ("\n".join(folders)).encode("utf-8")
                 response_len = len(response_content)
-                response_type = TYPE_DATA
                 response_checksum = calc_hash(response_content)
-
-            elif packet_cmd == CMD_DOWNLOAD_FILE:
-                response_cmd = RSP_DOWNLOAD_FILE
-                response_file = os.path.join(basepath, "users", packet_content.decode("utf-8"))
-                if SEPARATOR in response_file:
-                    raise ValueError(f"Invalid file name (contains {SEPARATOR})")
-                if packet_content.decode("utf-8").startswith(user_name) and os.path.isfile(response_file):
-                    response_len = os.path.getsize(response_file)
-                    response_type = TYPE_FILE
-                    response_checksum = calc_hash(response_file)
-                    response_secondary_header = (SEPARATOR.join([os.path.basename(response_file), str(response_len)])).encode("utf-8")
-
-            elif packet_cmd == CMD_DOWNLOAD_FOLDER:
-                response_cmd = RSP_DOWNLOAD_FOLDER
-                folder_to_compress = os.path.join(basepath, "users", packet_content.decode("utf-8"))
-                if packet_content.decode("utf-8").startswith(user_name) and os.path.isdir(folder_to_compress):
-                    if os.path.basename(folder_to_compress):
-                        folder_name = os.path.basename(folder_to_compress)
-                    else:
-                        folder_name = os.path.basename(os.path.split(folder_to_compress)[0])
-                    response_file = os.path.join(basepath, "temp", user_name, folder_name) + ".zip"
-                    if SEPARATOR in response_file:
-                        raise ValueError(f"Invalid file name (contains {SEPARATOR})")
-                    if os.path.isfile(response_file):
-                        os.remove(response_file)
-                    shutil.make_archive(response_file[:-4], "zip", folder_to_compress)
-                    response_len = os.path.getsize(response_file)
-                    response_type = TYPE_FILE
-                    response_checksum = calc_hash(response_file)
-                    response_secondary_header = (SEPARATOR.join([f"{folder_name}.zip", str(response_len)])).encode("utf-8")
 
             elif packet_cmd == CMD_UPLOAD_FILE:
                 response_cmd = RSP_UPLOAD_FILE
-                if packet_content is not None:
+                target_name, target_path = packet_content.decode("utf-8").split(SEPARATOR)
+                file_path = os.path.join(basepath, "users", target_path)
+                file_name = os.path.join(basepath, "users", target_path, os.path.basename(target_name))
+                if not target_path.startswith(user_name) or not os.path.isdir(file_path) or os.path.isfile(file_name):
+                    response_type = TYPE_FAILURE
+                else:
                     response_type = TYPE_SUCCESS
+                    pending_data = True
+
+            elif packet_cmd == CMD_DOWNLOAD_FILE:
+                response_cmd = RSP_DOWNLOAD_FILE
+                file_name = os.path.join(basepath, "users", packet_content.decode("utf-8"))
+                if SEPARATOR in file_name:
+                    raise ValueError(f"Invalid file name (contains {SEPARATOR})")
+                if not packet_content.decode("utf-8").startswith(user_name) or not os.path.isfile(file_name):
+                    response_type = TYPE_FAILURE
+                else:
+                    response_len = os.path.getsize(file_name)
+                    response_type = TYPE_FILE
+                    response_checksum = calc_hash(file_name)
+
+            elif packet_cmd == CMD_DOWNLOAD_FOLDER:
+                response_cmd = RSP_DOWNLOAD_FOLDER
+                dir_path = os.path.join(basepath, "users", packet_content.decode("utf-8"))
+                if not packet_content.decode("utf-8").startswith(user_name) or not os.path.isdir(dir_path):
+                    response_type = TYPE_FAILURE
+                else:
+                    if os.path.basename(dir_path):
+                        folder_name = os.path.basename(dir_path)
+                    else:
+                        folder_name = os.path.basename(os.path.split(dir_path)[0])
+                    file_name = os.path.join(basepath, "temp", user_name, folder_name) + ".zip"
+                    if SEPARATOR in file_name:
+                        raise ValueError(f"Invalid file name (contains {SEPARATOR})")
+                    if os.path.isfile(file_name):
+                        os.remove(file_name)
+                    shutil.make_archive(file_name[:-4], "zip", dir_path)
+                    response_len = os.path.getsize(file_name)
+                    response_type = TYPE_FILE
+                    response_checksum = calc_hash(file_name)
 
             else:
                 raise Exception("Invalid command to process. Command changed after receipt.")
 
             for counter in range(RETRY_COUNT):  # Loop for sending responses
-                send_header(connection, response_len, response_cmd, response_type, response_checksum, response_secondary_header)
+                send_header(connection, response_len, response_cmd, response_type, response_checksum)
                 if response_len > 0:
                     if response_type == TYPE_DATA:
                         if response_len > MAX_CMD_SIZE:
                             raise ValueError("Packet size overflow")
                         send_data(connection, response_content)
                     elif response_type == TYPE_FILE:
-                        with open(response_file, "rb") as file_to_send:
+                        with open(file_name, "rb") as file_to_send:
                             while True:
                                 raw_data = file_to_send.read(BUFFER)
                                 if not raw_data:
@@ -257,6 +238,50 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
             if counter >= (RETRY_COUNT - 1):
                 raise ValueError(f"Retry count ({RETRY_COUNT}) exceeded")
 
+            if pending_data:
+                for counter in range(RETRY_COUNT):  # Loop for receiving additional data
+                    packet_len, packet_cmd, packet_type, packet_checksum = receive_header(connection)
+                    if packet_type == TYPE_FILE and packet_len > 0:
+                        if packet_cmd in [CDT_UPLOAD_FILE]:
+                            current_len = 0
+                            with open(file_name, "wb") as new_file:
+                                while current_len < packet_len:
+                                    file_buffer = connection.recv(min(BUFFER, packet_len - current_len))
+                                    if not file_buffer:
+                                        raise Exception(f"File transfer interrupted (broken file: {file_name})")
+                                    new_file.write(file_buffer)
+                                    current_len += len(file_buffer)
+                            if calc_hash(file_name) == packet_checksum:
+                                send_check_response(connection, packet_cmd, CHECK_VALID)
+                                break
+                            else:
+                                os.remove(file_name)
+                                send_check_response(connection, packet_cmd, CHECK_INVALID)
+                                continue
+                        else:
+                            raise ValueError(f"Invalid packet command ({packet_cmd})")
+                    else:
+                        raise ValueError(f"Invalid data packet type ({packet_type}) or inappropriate length ({packet_len})")
+                if counter >= (RETRY_COUNT - 1):
+                    raise ValueError(f"Retry count ({RETRY_COUNT}) exceeded")
+
+                # Process the received data and create responses
+                response_len, response_cmd, response_type, response_checksum = 0, 0, 0, bytes(48)
+
+                if packet_cmd == CDT_UPLOAD_FILE:
+                    response_cmd = RDT_UPLOAD_FILE
+                    response_type = TYPE_SUCCESS
+
+                else:
+                    raise Exception("Invalid command to process. Command changed after receipt.")
+
+                for counter in range(RETRY_COUNT):  # Loop for sending responses
+                    send_header(connection, response_len, response_cmd, response_type, response_checksum)
+                    if receive_check_response(connection, response_cmd):
+                        break
+                if counter >= (RETRY_COUNT - 1):
+                    raise ValueError(f"Retry count ({RETRY_COUNT}) exceeded")
+
     except ConnectionError as e:
         print(f"[SOCKET LOG] Error: {e}")
         connection.close()
@@ -268,24 +293,16 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
         connection.close()
 
 
-def send_header(sock: socket.socket, msg_len: int, msg_cmd: int, msg_type: int, msg_checksum: bytes, secondary_header: bytes = bytes()) -> None:
+def send_header(sock: socket.socket, msg_len: int, msg_cmd: int, msg_type: int, msg_checksum: bytes) -> None:
     assert len(msg_checksum) == 48  # SHA384 hash length
-    msg_header = struct.pack("!Q", msg_len) + struct.pack("!H", len(secondary_header)) + struct.pack("!B", msg_cmd) + \
-                 struct.pack("!B", msg_type) + msg_checksum
-    sock.sendall(msg_header)
-    if secondary_header:
-        sock.sendall(secondary_header)
+    sock.sendall(struct.pack("!Q", msg_len) + struct.pack("!B", msg_cmd) + struct.pack("!B", msg_type) + msg_checksum)
 
 
-def receive_header(sock: socket.socket) -> tuple[int, int, int, bytes, bytes]:
-    raw_header = sock.recv(60)
+def receive_header(sock: socket.socket) -> tuple[int, int, int, bytes]:
+    raw_header = sock.recv(58)
     if not raw_header:
         raise ConnectionError("Connection closed while receiving packet header")
-    secondary_header = bytes()
-    secondary_header_len = struct.unpack("!H", raw_header[8:10])[0]
-    if secondary_header_len > 0:
-        secondary_header = receive_data(sock, secondary_header_len)
-    return struct.unpack("!Q", raw_header[:8])[0], raw_header[10], raw_header[11], raw_header[12:], secondary_header
+    return struct.unpack("!Q", raw_header[:8])[0], raw_header[8], raw_header[9], raw_header[10:]
 
 
 def send_data(sock: socket.socket, data: bytes) -> None:

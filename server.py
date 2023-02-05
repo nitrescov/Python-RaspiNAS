@@ -39,7 +39,7 @@ FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/file
 CERT = 'raspinas.crt'  # name (or path) of the SSL certificate file
 KEY = 'raspinas.key'  # name (or path) of the SSL key file
 OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.3.4'  # add a favicon (2023/01/29)
+VERSION = '1.3.5'  # extend the socket protocol with an optional, additional data packet (2023/02/05)
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
 HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
 
