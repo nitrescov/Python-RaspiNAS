@@ -21,8 +21,7 @@ import hashlib
 import threading
 
 # Constants
-BUFFER = 2**12  # Recommended INET packet size (4096 Bytes)
-MAX_CMD_SIZE = 2**28  # Max command packet size to be cached in RAM (256 MB)
+BUFFER = 2**27  # Max packet or file buffer size to be cached in RAM (128 MB)
 RETRY_COUNT = 5  # Max number of loop passes before an error is raised (must be a positive integer)
 SEPARATOR = "\n"
 
@@ -93,9 +92,9 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
         # Login phase (executed only once per session)
         for counter in range(RETRY_COUNT):  # Loop for receiving the login data
             packet_len, packet_cmd, packet_type, packet_checksum = receive_header(connection)
-            if packet_cmd != CMD_LOGIN or packet_type != TYPE_DATA or not (0 < packet_len <= MAX_CMD_SIZE):
+            if packet_cmd != CMD_LOGIN or packet_type != TYPE_DATA or not (0 < packet_len <= BUFFER):
                 raise ValueError("No login data received")
-            packet_content = receive_data(connection, packet_len)
+            packet_content = recvall(connection, packet_len)
             if calc_hash(packet_content) == packet_checksum:
                 send_check_response(connection, CMD_LOGIN, CHECK_VALID)
                 break
@@ -140,9 +139,9 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
                     else:
                         raise ValueError(f"Invalid packet command ({packet_cmd})")
                 elif packet_type == TYPE_DATA and packet_len > 0:
-                    if packet_len > MAX_CMD_SIZE:
-                        raise ValueError(f"Packet is no file, but larger than the maximum of {MAX_CMD_SIZE // (2 ** 20)} MB")
-                    packet_content = receive_data(connection, packet_len)
+                    if packet_len > BUFFER:
+                        raise ValueError(f"Packet is no file, but larger than the maximum of {BUFFER // (2 ** 20)} MB")
+                    packet_content = recvall(connection, packet_len)
                     if packet_cmd in [CMD_UPLOAD_FILE, CMD_DOWNLOAD_FILE, CMD_DOWNLOAD_FOLDER]:
                         if calc_hash(packet_content) == packet_checksum:
                             send_check_response(connection, packet_cmd, CHECK_VALID)
@@ -221,16 +220,16 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
                 send_header(connection, response_len, response_cmd, response_type, response_checksum)
                 if response_len > 0:
                     if response_type == TYPE_DATA:
-                        if response_len > MAX_CMD_SIZE:
+                        if response_len > BUFFER:
                             raise ValueError("Packet size overflow")
-                        send_data(connection, response_content)
+                        connection.sendall(response_content)
                     elif response_type == TYPE_FILE:
                         with open(file_name, "rb") as file_to_send:
                             while True:
                                 raw_data = file_to_send.read(BUFFER)
                                 if not raw_data:
                                     break
-                                send_data(connection, raw_data)
+                                connection.sendall(raw_data)
                     else:
                         raise Exception("Invalid response type defined")
                 if receive_check_response(connection, response_cmd):
@@ -293,36 +292,24 @@ def handle_connection(connection: socket.socket, usernames: list[str], userdata:
         connection.close()
 
 
+def recvall(sock: socket.socket, data_len: int) -> bytes:
+    data = bytearray()
+    while len(data) < data_len:
+        packet = sock.recv(min(BUFFER, data_len - len(data)))
+        if not packet:
+            raise ConnectionError("Connection closed during transfer")
+        data.extend(packet)
+    return bytes(data)
+
+
 def send_header(sock: socket.socket, msg_len: int, msg_cmd: int, msg_type: int, msg_checksum: bytes) -> None:
     assert len(msg_checksum) == 48  # SHA384 hash length
     sock.sendall(struct.pack("!Q", msg_len) + struct.pack("!B", msg_cmd) + struct.pack("!B", msg_type) + msg_checksum)
 
 
 def receive_header(sock: socket.socket) -> tuple[int, int, int, bytes]:
-    raw_header = sock.recv(58)
-    if not raw_header:
-        raise ConnectionError("Connection closed while receiving packet header")
+    raw_header = recvall(sock, 58)
     return struct.unpack("!Q", raw_header[:8])[0], raw_header[8], raw_header[9], raw_header[10:]
-
-
-def send_data(sock: socket.socket, data: bytes) -> None:
-    sock.sendall(data)
-
-
-def receive_data(sock: socket.socket, data_len: int) -> bytes:
-    if data_len <= BUFFER:
-        data = sock.recv(data_len)
-        if not data:
-            raise ConnectionError("Connection closed during transfer")
-        return data
-    else:
-        data = bytearray()
-        while len(data) < data_len:
-            packet = sock.recv(min(BUFFER, data_len - len(data)))
-            if not packet:
-                raise ConnectionError("Connection closed during transfer")
-            data.extend(packet)
-        return bytes(data)
 
 
 def send_check_response(sock: socket.socket, msg_cmd: int, validity_indicator: int) -> None:
@@ -330,15 +317,13 @@ def send_check_response(sock: socket.socket, msg_cmd: int, validity_indicator: i
 
 
 def receive_check_response(sock: socket.socket, msg_cmd: int) -> bool:
-    raw_response = sock.recv(2)
-    if not raw_response:
-        raise ConnectionError("Connection closed while receiving check response")
+    raw_response = recvall(sock, 2)
     if raw_response[0] != msg_cmd:
         raise ValueError("Received check response does not match the associated command type")
     return True if raw_response[1] == CHECK_VALID else False
 
 
-def calc_hash(obj: bytes | str) -> bytes:
+def calc_hash(obj) -> bytes:
     hash_object = hashlib.sha384()
     if isinstance(obj, bytes):
         hash_object.update(obj)
