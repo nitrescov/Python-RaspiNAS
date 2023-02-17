@@ -16,6 +16,7 @@
 # Currently recommended Python version: 3.10.9
 
 import os
+import json
 import random
 import bottle
 import shutil
@@ -32,16 +33,25 @@ monkey.patch_all()
 
 # ----- Server configuration and personalization: ---------------------------------------
 
-LANGUAGE = 'en'  # 'en' for English, 'de' for German (Deutsch)
-HOSTIP = '0.0.0.0'  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
-PORT = 443  # default HTTPS port 443
-FILEPATH = ''  # path where the uploaded files are stored (e.g. '/home/user/files/')
-CERT = 'raspinas.crt'  # name (or path) of the SSL certificate file
-KEY = 'raspinas.key'  # name (or path) of the SSL key file
-OWNER = ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
-VERSION = '1.3.6'  # fix receive method of the socket interface (2023/02/08)
+VERSION = '1.4.0'  # store server configuration in a separate config file (2023/02/18)
+
+try:  # Load server configuration from config file
+    with open('config.json', 'r') as config_file:
+        CONFIG = json.load(config_file)
+except FileNotFoundError:  # Set fallback values
+    CONFIG = {
+        'language': 'en',  # 'en' for English, 'de' for German (Deutsch)
+        'host_ip': '0.0.0.0',  # 'localhost' for test purposes, '0.0.0.0' listens anywhere
+        'port': 443,  # default HTTPS port 443
+        'socket_port': 5001,  # local port used for the socket interface
+        'storage_path': '',  # path where the uploaded files are stored (e.g. '/home/user/files/')
+        'cert_file': 'raspinas.crt',  # name (or path) of the SSL certificate file
+        'key_file': 'raspinas.key',  # name (or path) of the SSL key file
+        'owner': ''  # insert a name here to personalize the webapp (e.g. 'John Doe')
+    }
+
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890()+,.-_ '  # used to define allowed characters in directory names
-HTML = HtmlPages(OWNER, LANGUAGE)  # import commonly used HTML pages (to keep this file short and clear)
+HTML = HtmlPages(CONFIG['owner'], CONFIG['language'])  # import commonly used HTML pages (to keep this file short and clear)
 
 # ----- Beginning of the main functions: ------------------------------------------------
 #
@@ -58,8 +68,7 @@ for entry in range(len(USERDATA)):
 data.close()
 #
 # __ Ensure the correctness of the target file path: __
-if FILEPATH and FILEPATH[-1] != '/':
-    FILEPATH += '/'
+FILEPATH = (CONFIG['storage_path'] + '/') if (CONFIG['storage_path'] and CONFIG['storage_path'][-1] != '/') else CONFIG['storage_path']
 #
 # __ Increase allowed file size of uploads: __
 bottle.BaseRequest.MEMFILE_MAX = 32 * 1024 * 1024
@@ -126,7 +135,7 @@ def list_directory(directory):
                     folders.sort(key=str.lower)
                     files.sort(key=str.lower)
                     delete_dir_confirm = 'The directory will be deleted permanently. Continue?'
-                    if LANGUAGE == 'de':
+                    if CONFIG['language'] == 'de':
                         delete_dir_confirm = 'Soll der Ordner wirklich endgültig gelöscht werden?'
                     for folder in folders:
                         folder_list = folder_list + \
@@ -142,7 +151,7 @@ def list_directory(directory):
                                  f'<img src="/icons/trash_16x16.png"/>'
                                  f'</div></a></div>')
                     delete_file_confirm = 'The file will be deleted permanently. Continue?'
-                    if LANGUAGE == 'de':
+                    if CONFIG['language'] == 'de':
                         delete_file_confirm = 'Soll die Datei wirklich endgültig gelöscht werden?'
                     for file in files:
                         file_extension = str(file).split('.')[-1]
@@ -174,7 +183,7 @@ def list_directory(directory):
                     menu_buttons = ['Back to homepage', 'One page back', 'Download folder (zip)',
                                     'Create directory', 'Unpack zip file here', 'Upload file']
                     menu_placeholders = ['folder name', 'file.zip']
-                    if LANGUAGE == 'de':
+                    if CONFIG['language'] == 'de':
                         menu_buttons = ['zur Hauptseite', 'eine Seite zurück', 'Ordner herunterladen (zip)',
                                         'Ordner erstellen', 'zip-Datei hier entpacken', 'Datei hochladen']
                         menu_placeholders = ['Ordnername', 'Dateiname.zip']
@@ -224,7 +233,7 @@ def list_directory(directory):
                     if len(folder_path.split('/')) > 1:
                         show_path = (' / '.join(folder_path.split('/')[1:])) + ' / '
                     header_language = [f'{username}\'s files', 'files', 'folder(s)', 'file(s)', 'version']
-                    if LANGUAGE == 'de':
+                    if CONFIG['language'] == 'de':
                         header_language = [f'Dateien von {username}', 'Dateien', 'Ordner', 'Dateien', 'Version']
                     return f'''
                         <head>
@@ -244,7 +253,7 @@ def list_directory(directory):
                             </p><br><br><br>
                             <p style="margin:auto; font-family:sans-serif; font-size:12px; text-align:center; color:#787878; border-top-style:solid; 
                             border-color:#787878; border-width:1px; width:250px; padding:10px">
-                                - {OWNER} RaspiNAS {header_language[4]} {VERSION} -
+                                - {CONFIG["owner"]} RaspiNAS {header_language[4]} {VERSION} -
                             </p>
                         </body>
                     '''
@@ -366,7 +375,7 @@ def unpack_zipfile(ziptarget):
                     bottle.redirect(f'/files/{target_folder}/{folder_name}')
                 else:
                     error_language = ['Unpacking failed', 'Error: The given file does not exist or the target directory is not empty.', 'Back']
-                    if LANGUAGE == 'de':
+                    if CONFIG['language'] == 'de':
                         error_language = ['Entpacken fehlgeschlagen', 'Fehler: die angegebene Datei existiert nicht oder das Zielverzeichnis ist nicht leer.', 'Zurück']
                     return f'''
                         <head>
@@ -437,7 +446,7 @@ def background_task():
 
 
 def start_socket_interface():
-    socket_interface.socket_server(HOSTIP, 5001, USERNAMES, USERDATA, FILEPATH)
+    socket_interface.socket_server(CONFIG['host_ip'], CONFIG['socket_port'], USERNAMES, USERDATA, FILEPATH)
 
 
 #
@@ -451,4 +460,4 @@ socket_thread = threading.Thread(target=start_socket_interface, daemon=True)
 socket_thread.start()
 #
 # __ Start the webserver: __
-bottle.run(webapp, server='gevent', host=HOSTIP, port=PORT, certfile=CERT, keyfile=KEY)
+bottle.run(webapp, server='gevent', host=CONFIG['host_ip'], port=CONFIG['port'], certfile=CONFIG['cert_file'], keyfile=CONFIG['key_file'])

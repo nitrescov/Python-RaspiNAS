@@ -1,0 +1,10 @@
+{
+  "language": "en",
+  "host_ip": "0.0.0.0",
+  "port": 443,
+  "socket_port": 5001,
+  "storage_path": "",
+  "cert_file": "raspinas.crt",
+  "key_file": "raspinas.key",
+  "owner": ""
+}
