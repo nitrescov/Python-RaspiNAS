@@ -32,9 +32,19 @@ Derzeit bin ich der einzige Entwickler hinter diesem Projekt, wodurch es zunäch
    * **Achtung:** beim Löschen muss unbedingt beachtet werden, dass man die richtigen Zeilen entfernt und beide Dateien am Ende die gleiche Zeilenanzahl besitzen (mit einem Zeilenumbruch am Ende). Bei wenigen Nutzern empfiehlt es sich, die Dateien zu löschen und mittels `add_users.py` neu zu generieren.
 
 
-3. Einrichtung der `server.py` Datei:
-   * In dieser Datei befinden sich zusätzliche Konfigurationsoptionen direkt nach den Imports unter `Server configuration and personalization`.
-   * Dort können Sprache, IP, Port, ein anderer Speicherpfad für die Dateien, ein Besitzername und der Filter für Ordnernamen angepasst werden. Das Programm ist aber auch mit den Standardeinstellungen lauffähig.
+3. Einrichtung des Servers:
+   * Die Konfiguration und Personalisierung des Servers erfolgt in der Datei `config.json`. Er ist aber auch mit den Standardeinstellungen lauffähig.
+
+| Key          | Value (Erklärung)                                                                         |
+|--------------|-------------------------------------------------------------------------------------------|
+| language     | Einstellung der Sprache (`de` oder `en`)                                                  |
+| host_ip      | IP-Adresse, auf der Anfragen empfangen werden (`0.0.0.0` - alle, `localhost` - nur lokal) |
+| port         | Port für die Kommunikation (`443` - standardmäßiger HTTPS-Port)                           |
+| socket_port  | Port für eingehende Verbindungen der Socket-Schnittstelle                                 |
+| storage_path | Pfad/Ort, an dem die hochgeladenen Daten gespeichert werden                               |
+| cert_file    | Name oder Pfad des SSL Zertifikats                                                        |
+| key_file     | Name oder Pfad der SSL Key-Datei                                                          |
+| owner        | Name des Besitzers, um die Weboberfläche zu personalisieren                               |
 
 
 4. Erstellen eines selbst-signierten SSL-Zertifikates (mehr Details bei [Baeldung](https://www.baeldung.com/openssl-self-signed-cert)):
@@ -89,9 +99,19 @@ Currently I'm the only developer behind the project. For that reason, there will
    * **Warning:** When deleting a user double check to remove the right lines and make sure that both files have the same line count afterwards (with one linebreak at the end). If there are only few users, I'd recommend deleting the file and regenerating it with `add_users.py`.
 
 
-3. Setup of `server.py`:
-   * This file contains additional configuration options which are located right after the import section (marked with `Server configuration and personalization`).
-   * There the language, ip, port, a different target directory for the files, the name of the owner und a directory naming filter can be changed, although you can still run the program with default settings.
+3. Server setup:
+   * The configuration and personalization of the server is done in the `config.json` file. However, it should also run with the default settings.
+
+| Key          | Value (Explanation)                                                                          |
+|--------------|----------------------------------------------------------------------------------------------|
+| language     | Configuration of the language (`de` or `en`)                                                 |
+| host_ip      | IP address to listen for requests (`0.0.0.0` - listens everywhere, `localhost` - only local) |
+| port         | Port for communication (`443` - default HTTPS port)                                          |
+| socket_port  | Port for incoming connections of the socket interface                                        |
+| storage_path | Path/location where uploaded files are stored                                                |
+| cert_file    | Name or path of the SSL certificate file                                                     |
+| key_file     | Name or path of the SSL key file                                                             |
+| owner        | Name of the owner to personalize the web app                                                 |
 
 
 4. Create a self-signed SSL certificate (more details at [Baeldung](https://www.baeldung.com/openssl-self-signed-cert)):
